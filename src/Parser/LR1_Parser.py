@@ -1,5 +1,5 @@
-from LR1_Automaton import build_LR1_automaton
-from ShiftReduceParser import ShiftReduceParser
+from.LR1_Automaton import build_LR1_automaton
+from.ShiftReduceParser import ShiftReduceParser
 
 
 class LR1Parser(ShiftReduceParser):
@@ -14,7 +14,7 @@ class LR1Parser(ShiftReduceParser):
         for node in automaton:
             idx = node.idx
             for item in node.state:
-                print('current item', item)
+                #print('current item', item)
                 # Your code here!!!
                 # - Fill self.Action and self.Goto according to item)
                 
@@ -30,7 +30,7 @@ class LR1Parser(ShiftReduceParser):
                 
                 elif item.IsReduceItem and item.production.Left == G.startSymbol and not item.NextSymbol:
                     
-                    self._register(self.action, (idx, G.EOF), self.OK)
+                    self._register(self.action, (idx, G.EOF), (self.OK, self.OK))
 
                 else: #item.NextSymbol and item.NextSymbol.IsNonTerminal:
                     self._register(self.goto, (idx, item.NextSymbol), node.get(item.NextSymbol.Name).idx)
