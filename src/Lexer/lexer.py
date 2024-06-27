@@ -1,5 +1,5 @@
-import regex
-import tokens
+from . import regex
+from . import tokens
 
 class HULK_Lexer:
     def __init__(self):
