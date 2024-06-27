@@ -11,54 +11,37 @@ expression = G.NonTerminal('<expression>')
 arithmeticExpression = G.NonTerminal('<arithmeticExpression>')
 power = G.NonTerminal('<power>')
 term = G.NonTerminal('<term>')
-module = G.NonTerminal('<module>')
 factor = G.NonTerminal('<factor>')
+neg = G.NonTerminal('<neg>')
 stringExpression = G.NonTerminal('<stringExpression>')
-concatenation = G.NonTerminal('<concatenation>')
-stringLiteral = G.NonTerminal('<stringLiteral>')
-escapeSequence = G.NonTerminal('<escapeSequence>')
-functionCall = G.NonTerminal('<functionCall>')
+stringExpression1 = G.NonTerminal('<stringExpression1>')
+stringExpression2 = G.NonTerminal('<stringExpression2>')
+stringExpression3 = G.NonTerminal('<stringExpression3>')
 argumentList = G.NonTerminal('<argumentList>')
+argumentList2 = G.NonTerminal('<argumentList2>')
 expressionBlock = G.NonTerminal('<expressionBlock>')
-statmentList = G.NonTerminal('<statmentList>')
-conditional = G.NonTerminal('<conditional>')
-conditionalLine = G.NonTerminal('<conditionalLine>')
 conditionalExpression = G.NonTerminal('<conditionalExpression>')
 condition = G.NonTerminal('<condition>')
-booleanValue = G.NonTerminal('<booleanValue>')
-comparation = G.NonTerminal('<comparation>')
-elseStatement = G.NonTerminal('<elseStatement>')
-loop = G.NonTerminal('<loop>')
-variableDeclaration = G.NonTerminal('<variableDeclaration>')
+elifStatement = G.NonTerminal('<elifStatement>')
 variableAssign = G.NonTerminal('<variableAssign>')
-destructiveAssignment = G.NonTerminal('<destructiveAssignment>')
-functionDefinitionList = G.NonTerminal('<functionDefinitionList>')
 functionDefinition = G.NonTerminal('<functionDefinition>')
 idList = G.NonTerminal('<idList>')
 typeDefinition = G.NonTerminal('<typeDefinition>')
 attributeList = G.NonTerminal('<attributeList>')
 attribute = G.NonTerminal('<attribute>')
-methodsList = G.NonTerminal('<methodsList>')
 inlineMethodList = G.NonTerminal('<inlineMethodList>')
-fullMethodList = G.NonTerminal('<fullMethodList>')
-methodCall = G.NonTerminal('<methodCall>')
-typeInstantiating = G.NonTerminal('<typeInstantiating>')
-typeAtribute = G.NonTerminal('<typeAtribute>')
-typeMethodCall = G.NonTerminal('<typeMethodCall>')
-typeInheritance = G.NonTerminal('<typeInheritance>')
-checkingType = G.NonTerminal('<checkingType>')
-downcasting = G.NonTerminal('<downcasting>')
 protocolDefinition = G.NonTerminal('<protocolDefinition>')
 vector = G.NonTerminal('<vector>')
-parameterList = G.NonTerminal('<parameterList>')
-parameter = G.NonTerminal('<parameter>')
-expressionLine = G.NonTerminal('<expressionLine>')
 atom = G.NonTerminal('<atom>')
-vectorCall = G.NonTerminal('<vectorCall>')
 definitionList = G.NonTerminal('<definitionList>')
 definition = G.NonTerminal('<definition>')
-methodDeclaration = G.NonTerminal('<methodDeclaration>')
+methodDefinition = G.NonTerminal('<methodDefinition>')
 expressionLineList = G.NonTerminal('<expressionLineList>')
+parameterTypeList = G.NonTerminal('<parameterTypeList>')
+idMultiple = G.NonTerminal('<idMultiple>')
+inlineMethod = G.NonTerminal('<inlineMethod>')
+parameterType = G.NonTerminal('<parameterType>')
+
 
 # terminals
 open_parenthesis__ = G.Terminal('(')
@@ -84,6 +67,7 @@ as__ = G.Terminal('as')
 id__ = G.Terminal('id')
 number__ = G.Terminal('number')
 string__= G.Terminal('string')
+booleanValue__ = G.Terminal('bool')
 new__ = G.Terminal('new')
 type__ = G.Terminal('type')
 protocol__ = G.Terminal('protocol')
@@ -113,9 +97,6 @@ or__ = G.Terminal('|')
 bars__ = G.Terminal('||')
 not__ = G.Terminal('!')
 
-true__ = G.Terminal('true')
-false__ = G.Terminal('false')
-
 gt__ = G.Terminal('>')
 lt__ = G.Terminal('<')
 gte__ = G.Terminal('>=')
@@ -125,160 +106,150 @@ neq__ = G.Terminal('!=')
 
 #productions
 program %= definitionList + globalExpression
-program %= globalExpression
 
-definitionList %= definition
+definitionList %= G.Epsilon
 definitionList %= definition + definitionList
 
 definition %= functionDefinition
 definition %= typeDefinition
 definition %= protocolDefinition
 
-functionDefinition %= function + id__ + open_parenthesis__ + idList + closed_parenthesis__ + func_arrow__ + expression
-functionDefinition %= function + id__ + open_parenthesis__ + idList + closed_parenthesis__ + expressionBlock
+functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + func_arrow__ + expression + semicolon__
+functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + expressionBlock
+functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__
+functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock
+
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + func_arrow__ + expression + semicolon__
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + expressionBlock
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock
 
 idList %= G.Epsilon
-idList %= id__
-idList %= id__ + comma__ + idList
-idList %= id__ + checkingType
-idList %= id__ + checkingType + comma__ + idList
+idList %= idMultiple
 
-checkingType %= type_asignator__ + id__
+idMultiple %= id__
+idMultiple %= id__ + type_asignator__ + id__
+idMultiple %= id__ + comma__ + idMultiple
+idMultiple %= id__ + type_asignator__ + id__ + comma__ + idMultiple
 
-typeDefinition %= type + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__
-typeDefinition %= type + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__
-typeDefinition %= type + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__
-typeDefinition %= type + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__
-typeDefinition %= type + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__ + semicolon__
-typeDefinition %= type + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__ + semicolon__
-typeDefinition %= type + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__ + semicolon__
-typeDefinition %= type + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + methodsList + closed_curly_bracket__ + semicolon__
+typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList +closed_curly_bracket__
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__
+# typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
+# typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
+# typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
+# typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList +closed_curly_bracket__ + semicolon__
+# typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
+# typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 
-attributeList %= attribute + semicolon__
-attributeList %= attribute + semicolon__ + attributeList
+attributeList %= G.Epsilon
+attributeList %= attribute + attributeList
 
-attribute %= id__ + inicialization__ + expressionLine
-attribute %= id__ + checkingType + inicialization__ + expressionLine
+attribute %= id__ + inicialization__ + expression + semicolon__
+attribute %= id__ + type_asignator__ + id__ + inicialization__ + expression + semicolon__
+attribute %= methodDefinition
 
-methodsList %= G.Epsilon
-methodsList %= methodDeclaration
-methodsList %= methodDeclaration + methodsList
+protocolDefinition %= protocol__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__
+protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__
+# protocolDefinition %= protocol__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__ + semicolon__
+# protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__ + semicolon__
 
-methodDeclaration %= id__ + methodCall + func_arrow__ + expressionLine
-methodDeclaration %= id__ + methodCall + expressionBlock
+inlineMethodList %= G.Epsilon
+inlineMethodList %= inlineMethod + inlineMethodList
 
-methodCall %= open_parenthesis__ + parameterList + closed_parenthesis__
+inlineMethod %= id__ + open_parenthesis__ + parameterTypeList + closed_parenthesis__ + type_asignator__ + id__ + semicolon__
 
-parameterList %= G.Epsilon
-parameterList %= expression
-parameterList %= expression + comma__ + parameterList
+parameterType %= G.Epsilon
+parameterType %= parameterTypeList
 
-protocolDefinition %= protocol__ + id__ + open_curly_bracket__ + inlineMethodList + closed_curly_bracket__
-protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket__ + inlineMethodList + closed_curly_bracket__
-protocolDefinition %= protocol__ + id__ + open_curly_bracket__ + inlineMethodList + closed_curly_bracket__ + semicolon__
-protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket__ + inlineMethodList + closed_curly_bracket__ + semicolon__
+parameterTypeList %= id__ + type_asignator__ + id__
+parameterTypeList %= id__ + type_asignator__ + id__ + comma__ + parameterTypeList
 
-globalExpression %= expressionLine
+globalExpression %= expression + semicolon__ 
 globalExpression %= expressionBlock
 
-expressionLine %= expression + semicolon__
+expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__
+# expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__ + semicolon__
+
+expressionLineList %= expression + semicolon__ 
+expressionLineList %= expression + semicolon__ + expressionLineList
 
 expression %= stringExpression
-expression %= typeInstantiating
-expression %= destructiveAssignment
-expression %= variableDeclaration
-expression %= loop
-expression %= conditional
+expression %= new__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__
+expression %= factor + assignation__ + expression
+expression %= let__ + variableAssign + in__ + expression
+expression %= while__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression
+expression %= for__ + open_parenthesis__ + id__ + in__ + expression + closed_parenthesis__ + expression
+expression %= if__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement + else__ + expression
 
-stringExpression %= conditionalExpression
-stringExpression %= conditionalExpression + downcasting
-stringExpression %= stringExpression + string_operator__ + conditionalExpression
-stringExpression %= stringExpression + string_operator_space__ + conditionalExpression
+stringExpression %= stringExpression1
+stringExpression %= stringExpression1 + as__ + id__
+
+elifStatement %= G.Epsilon
+elifStatement %= elif__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement
+
+variableAssign %= id__ + inicialization__ + expression
+variableAssign %= id__ + type_asignator__ + id__ + inicialization__ + expression
+variableAssign %= id__ + inicialization__ + expression + comma__ + variableAssign
+variableAssign %= id__ + type_asignator__ + id__ + inicialization__ + expression + comma__ + variableAssign
+
+stringExpression1 %= stringExpression2
+stringExpression1 %= stringExpression1 + string_operator__ + stringExpression2
+stringExpression1 %= stringExpression1 + string_operator_space__ + stringExpression2
+
+stringExpression2 %= stringExpression3
+stringExpression2 %= stringExpression2 + and__ + stringExpression3
+
+stringExpression3 %= conditionalExpression
+stringExpression3 %= stringExpression3 + or__ + conditionalExpression
 
 conditionalExpression %= condition
-conditionalExpression %= condition + and__ + conditionalExpression
-conditionalExpression %= condition + or__ + conditionalExpression
 conditionalExpression %= not__ + condition
 
 condition %= arithmeticExpression
+condition %= arithmeticExpression + neq__ + arithmeticExpression
 condition %= arithmeticExpression + lt__ + arithmeticExpression
+condition %= arithmeticExpression + eq__ + arithmeticExpression
 condition %= arithmeticExpression + gt__ + arithmeticExpression
 condition %= arithmeticExpression + lte__ + arithmeticExpression
 condition %= arithmeticExpression + gte__ + arithmeticExpression
-condition %= arithmeticExpression + eq__ + arithmeticExpression
-condition %= arithmeticExpression + neq__ + arithmeticExpression
-condition %= arithmeticExpression + is__ + arithmeticExpression
+condition %= arithmeticExpression + is__ + id__
 
 arithmeticExpression %= term
 arithmeticExpression %= arithmeticExpression + plus_operator__ + term
 arithmeticExpression %= arithmeticExpression + minus_operator__ + term
 
-term %= power
-term %= term + multiplication__ + power
-term %= term + division__ + power
-term %= term + module_operation__ + power
+term %= neg
+term %= term + division__ + neg
+term %= term + module_operation__ + neg
+term %= term + multiplication__ + neg
+
+neg %= power
+neg %= minus_operator__ + neg
 
 power %= factor
 power %= factor + exponentiation__ + power
 
 factor %= atom
-factor %= factor + dot__ + functionCall
-factor %= factor + dot__ + methodCall
-factor %= factor + vectorCall
+factor %= factor + dot__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__
+factor %= factor + dot__ + id__
+factor %= factor + open_square_braket__ + expression + close_square_braket__
 
 atom %= id__
 atom %= number__
-atom %= booleanValue
+atom %= booleanValue__
 atom %= string__
-atom %= functionCall
+atom %= id__ + open_parenthesis__ + argumentList + closed_parenthesis__
 atom %= expressionBlock
 atom %= open_parenthesis__ + expression + closed_parenthesis__
-atom %= vector
+atom %= open_square_braket__ + argumentList + close_square_braket__
+atom %= open_square_braket__ + expression + bars__ + id__ + in__ + expression + close_square_braket__
 
-functionCall %= open_parenthesis__ + argumentList + closed_parenthesis__
-
-argumentList %= expressionLine + comma__ + argumentList
 argumentList %= G.Epsilon
+argumentList %= expression + argumentList2
 
-expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__ + semicolon__
-expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__
-
-expressionLineList %= expressionLine
-expressionLineList %= expressionLine + expressionLineList
-
-conditional %= if__ + conditionalLine
-
-conditionalLine %= open_parenthesis__ + conditionalExpression + closed_parenthesis__ + expression + elseStatement
-
-#! Make sense??
-booleanValue %= true__
-booleanValue %= false__
-
-elseStatement %= G.Epsilon
-elseStatement %= elif__ + open_parenthesis__ + conditionalExpression + closed_parenthesis__ + expression + elseStatement
-elseStatement %= else__ + expression
-
-loop %= while__ + open_parenthesis__ + conditionalExpression + closed_parenthesis__ + expression
-loop %= for__ + open_parenthesis__ + id__ + in__ + expression + closed_parenthesis__ + expression
-
-variableDeclaration %= let__ + variableAssign + in__ + expression
-
-variableAssign %= id__ + inicialization__ + expression
-variableAssign %= id__ + inicialization__ + expression + comma__ + variableAssign
-variableAssign %= id__ + checkingType + inicialization__ + expression
-variableAssign %= id__ + checkingType + inicialization__ + expression + comma__ + variableAssign
-
-#! factor <=> id__??
-destructiveAssignment %= id__ + assignation__ + expression
-
-inlineMethodList %= id__ + methodCall + func_arrow__ + expressionLine
-inlineMethodList %= id__ + methodCall + func_arrow__ + expressionLine + inlineMethodList
-
-typeInstantiating %= new__ + id__ + open_parenthesis__ + parameterList + closed_parenthesis__
-
-downcasting %= as__ + id__
-
-vector %= open_square_braket__ + parameterList + close_square_braket__
-vector %= open_square_braket__ + expression + bars__ + id__ + in__ + expression + close_square_braket__
-
-vectorCall %= open_square_braket__ + expression + close_square_braket__
+argumentList2 %= G.Epsilon
+argumentList2 %= comma__ + expression + argumentList2

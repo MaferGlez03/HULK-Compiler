@@ -1,4 +1,4 @@
-import tokens
+from . import tokens
 
 class MalformedRegexError(Exception):
     def __init__(self, message="La expresión regular está mal formada"):
