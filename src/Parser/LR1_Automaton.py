@@ -60,15 +60,17 @@ from cmp.automata import State, multiline_formatter
 
 def build_LR1_automaton(G):
     assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
-    
+    print('Building automaton')
     firsts = compute_firsts(G)
     firsts[G.EOF] = ContainerSet(G.EOF)
+    print('Firsts computed')
     
     start_production = G.startSymbol.productions[0]
     start_item = Item(start_production, 0, lookaheads=(G.EOF,))
     start = frozenset([start_item])
     
     closure = closure_lr1(start, firsts)
+    print('Closure computed')
     automaton = State(frozenset(closure), True)
     
     pending = [ start ]
@@ -77,8 +79,9 @@ def build_LR1_automaton(G):
     while pending:
         current = pending.pop()
         current_state = visited[current]
-        
+        #print(len(G.terminals + G.nonTerminals))
         for symbol in G.terminals + G.nonTerminals:
+            #print('finding status',symbol)
             next = frozenset(goto_lr1(current_state.state, symbol, firsts))
             if len(next) == 0: continue
             next_state = State(next, True)
@@ -90,4 +93,5 @@ def build_LR1_automaton(G):
               current_state.add_transition(symbol.Name, visited[next])
     
     automaton.set_formatter(multiline_formatter)
+    print('se construyó el automata')
     return automaton
