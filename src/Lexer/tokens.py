@@ -1,4 +1,4 @@
-from ..grammar.grammar import *
+from  grammar.grammar import *
 from enum import Enum, auto
 
 #region TokenType
@@ -139,7 +139,7 @@ def hulk_tokens():
         (TokenType.OPEN_PAREN, "("), (TokenType.CLOSE_PAREN, ")"), (TokenType.ARROW, "=?>"), (TokenType.COMMA, ","),
         (TokenType.ASSIGMENT, "="), (TokenType.DEST_ASSIGMENT, ":?="),
         (TokenType.PLUS, "+"), (TokenType.MINUS, "-"), (TokenType.STAR, "*"), (TokenType.DIV, "/"),
-        (TokenType.POWER, "^"), (TokenType.MOD, "%"), (TokenType.POWER2, "**"),
+        (TokenType.POWER, "^"), (TokenType.MOD, "%"), #(TokenType.POWER2, "**"),
         (TokenType.EQ, "=?="), (TokenType.NEQ, "!?="), (TokenType.LEQ, "<?="), (TokenType.GEQ, ">?="),
         (TokenType.LT, "<"), (TokenType.GT, ">"), (TokenType.AND, "&"), (TokenType.OR, "|"),
         (TokenType.NOT, "!"), (TokenType.ARR, "@"), (TokenType.DOUBLE_ARR, "@?@"), (TokenType.DOT, "."),
@@ -153,7 +153,7 @@ def hulk_tokens():
         (TokenType.WHILE, "w?h?i?l?e"), (TokenType.FOR, "f?o?r"),
         (TokenType.NEW, "n?e?w"), (TokenType.IS, "i?s"), (TokenType.AS, "a?s"),
         (TokenType.PROTOCOL, "p?r?o?t?o?c?o?l"), (TokenType.EXTENDS, "e?x?t?e?n?d?s"),
-        (TokenType.TYPE, "t?y?p?e"), (TokenType.INHERITS, "i?n?h?e?r?i?t?s"), (TokenType.BASE, "b?a?s?e"),
+        (TokenType.TYPE, "t?y?p?e"), (TokenType.INHERITS, "i?n?h?e?r?i?t?s"), #(TokenType.BASE, "b?a?s?e"),
         (TokenType.BOOLEAN, "(t?r?u?e)|(f?a?l?s?e)"), (TokenType.PI, "P?I"), (TokenType.E, "E")]
 
     nonzero_digits = '|'.join(str(n) for n in range(1, 10))

@@ -1,9 +1,10 @@
 from . import regex
 from . import tokens
-from ..cmp.utils import Token
+from cmp.utils import Token
 
 class HULK_Lexer:
-    def __init__(self):
+    def __init__(self,eof):
+        self.eof=eof
         self.automaton = self.build_automaton()
         print("DFA BUILT")
 
@@ -86,9 +87,9 @@ class HULK_Lexer:
 
         return code_tokenized
 
-lexer = HULK_Lexer()
-code_tokenized = lexer.tokenize("let x = 5; \n cadena = \"tu mama te ama\"")
-print(code_tokenized)
+# lexer = HULK_Lexer()
+# code_tokenized = lexer.tokenize("let x = 5; \n cadena = \"tu mama te ama\"")
+# print(code_tokenized)
 
 
 

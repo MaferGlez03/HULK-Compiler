@@ -1,4 +1,4 @@
-from ..cmp.pycompiler import Grammar
+from cmp.pycompiler import Grammar
 
 G = Grammar()
 
