@@ -1,4 +1,4 @@
-
+from ..grammar.grammar import *
 from enum import Enum, auto
 
 #region TokenType
@@ -23,6 +23,7 @@ class TokenType(Enum):
     NUMBER = auto()
     BOOLEAN = auto()
     PI = auto()
+    E = auto()
 
     PLUS = auto()
     MINUS = auto()
@@ -30,7 +31,6 @@ class TokenType(Enum):
     DIV = auto()
     MOD = auto()
     POWER = auto()
-    POWER2 = auto()
 
     AND = auto()
     OR = auto()
@@ -61,11 +61,76 @@ class TokenType(Enum):
     EXTENDS = auto()
     TYPE = auto()
     INHERITS = auto()
-    BASE = auto()
 
     UNTERMINATED_STRING = auto()
     ESCAPED_CHAR = auto()
     SPACES = auto()
+
+tokens_terminals = {
+    TokenType.OPEN_PAREN: open_parenthesis__ ,
+    TokenType.CLOSE_PAREN: closed_parenthesis__,
+    TokenType.OPEN_BRACKET: open_curly_bracket__,
+    TokenType.CLOSE_BRACKET: closed_curly_bracket__,
+    TokenType.OPEN_SQUARE_BRACKET: open_square_braket__,
+    TokenType.CLOSE_SQUARE_BRACKET: close_square_braket__,
+    TokenType.COMMA: comma__,
+    TokenType.DOT: dot__,
+    TokenType.COLON: type_asignator__,
+    TokenType.SEMICOLON: semicolon__,
+    TokenType.ARROW: func_arrow__,
+    TokenType.DOUBLE_BAR: bars__,
+    TokenType.ASSIGMENT: inicialization__,
+    TokenType.DEST_ASSIGMENT: assignation__,
+
+    TokenType.IDENTIFIER: id__,
+    TokenType.STRING: string__,
+    TokenType.NUMBER: number__,
+    TokenType.BOOLEAN: booleanValue__,
+    TokenType.PI: number__,
+    TokenType.E: number__,
+
+    TokenType.PLUS: plus_operator__,
+    TokenType.MINUS: minus_operator__,
+    TokenType.STAR: multiplication__,
+    TokenType.DIV: division__,
+    TokenType.MOD: module_operation__,
+    TokenType.POWER: exponentiation__,
+
+    TokenType.AND: and__,
+    TokenType.OR: or__,
+    TokenType.NOT: not__,
+
+    TokenType.ARR: string_operator__,
+    TokenType.DOUBLE_ARR: string_operator_space__,
+
+    TokenType.EQ: eq__,
+    TokenType.NEQ: neq__,
+    TokenType.LEQ: lte__,
+    TokenType.GEQ: gte__,
+    TokenType.LT: lt__,
+    TokenType.GT: gt__,
+
+    TokenType.FUNCTION: function__,
+    TokenType.LET: let__,
+    TokenType.IN: in__,
+    TokenType.IF: if__,
+    TokenType.ELSE: else__,
+    TokenType.ELIF: elif__,
+    TokenType.WHILE: while__,
+    TokenType.FOR: for__,
+    TokenType.NEW: new__,
+    TokenType.IS: is__,
+    TokenType.AS: as__,
+    TokenType.PROTOCOL: protocol__,
+    TokenType.EXTENDS: extends__,
+    TokenType.TYPE: type__,
+    TokenType.INHERITS: inherits__,
+    
+
+    TokenType.UNTERMINATED_STRING: 'UNTERMINATED_STRING',
+    TokenType.ESCAPED_CHAR: 'ESCAPED_CHAR',
+    TokenType.SPACES: 'SPACES',
+}
 
 #region hulk_tokens
 def hulk_tokens():
@@ -89,7 +154,7 @@ def hulk_tokens():
         (TokenType.NEW, "n?e?w"), (TokenType.IS, "i?s"), (TokenType.AS, "a?s"),
         (TokenType.PROTOCOL, "p?r?o?t?o?c?o?l"), (TokenType.EXTENDS, "e?x?t?e?n?d?s"),
         (TokenType.TYPE, "t?y?p?e"), (TokenType.INHERITS, "i?n?h?e?r?i?t?s"), (TokenType.BASE, "b?a?s?e"),
-        (TokenType.BOOLEAN, "(t?r?u?e)|(f?a?l?s?e)"), (TokenType.PI, "P?I")]
+        (TokenType.BOOLEAN, "(t?r?u?e)|(f?a?l?s?e)"), (TokenType.PI, "P?I"), (TokenType.E, "E")]
 
     nonzero_digits = '|'.join(str(n) for n in range(1, 10))
     digits = '|'.join(str(n) for n in range(10))
@@ -111,10 +176,10 @@ def hulk_tokens():
     hulk_tokens = operators + reserved_words + [
         (TokenType.NUMBER, number_regex), (TokenType.IDENTIFIER, identifier_regex),
         (TokenType.STRING, string_regex), (TokenType.UNTERMINATED_STRING, unterminated_string_regex),
-        (TokenType.SPACES, " ? *"), (TokenType.ESCAPED_CHAR, "(\n)|(\t)")
+        (TokenType.SPACES, " ? *"), (TokenType.ESCAPED_CHAR, "(\n)|(\t)"), 
     ]
 
     return hulk_tokens
 
 
-special_tokens = [TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN, TokenType.STAR, TokenType.OR, TokenType.DOUBLE_BAR, TokenType.POWER2]
+special_tokens = [TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN, TokenType.STAR, TokenType.OR, TokenType.DOUBLE_BAR]

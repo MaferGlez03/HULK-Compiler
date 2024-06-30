@@ -45,9 +45,12 @@ class DFA:
                     tokens_set.add(nfa_state.token_recognized.value)
         else:
             raise Exception("No es un estado final del DFA")
+        
         value =  max(tokens_set)
 
-        return tokens.TokenType(value).name
+        ttype = tokens.TokenType(value)
+
+        return tokens.tokens_terminals[ttype]
                 
 
 
