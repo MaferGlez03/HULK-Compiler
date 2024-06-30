@@ -22,7 +22,7 @@ class ShiftReduceParser:
         while True:
             state = stack[-1]
             lookahead = w[cursor] #Maybe here I should put
-            if self.verbose: print(stack, '<---||--->', w[cursor:])
+            #if self.verbose: print(stack, '<---||--->', w[cursor:])
             
             if(state,lookahead) not in self.action:
                 return None
