@@ -11,13 +11,12 @@ def expand(item, firsts):
     # Compute lookahead for child items
     for item in item.Preview():
         first = compute_local_first(firsts, item)
-        lookaheads.update(first)
-     
-    result = []
+        for i in first:
+         lookaheads.add(i)
     assert not lookaheads.contains_epsilon
     # Build and return child items
     productions = next_symbol.productions
-    return [Item(production, 0, lookaheads) for production in productions] #!not sure if I return all.
+    return [Item(production, 0, lookaheads) for production in productions] 
 
 
 def compress(items):
