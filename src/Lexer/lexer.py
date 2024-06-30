@@ -57,10 +57,10 @@ class HULK_Lexer:
 
             if symbol not in self.automaton.transitions.get(actualState, {}):
                 if last_token_recognized is not None:
-                    code_tokenized.append(Token(last_token_recognized, last_lexeme_recognized, row, column - len(actual_lexeme) + 1))
+                    code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme) + 1))
                 else:
                     # Handle error or unrecognized symbol
-                    pass
+                    raise Exception(f"Error in Lexical Analysis in row {row} and column {column}")
                 
                 if last_lexeme_recognized == "\n":
                     row += 1
@@ -81,9 +81,9 @@ class HULK_Lexer:
                 
 
         if last_token_recognized is not None:
-            code_tokenized.append(Token(last_token_recognized, last_lexeme_recognized, row, column - len(actual_lexeme) ))
+            code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme) ))
 
-        code_tokenized.append(Token(self.eof, '$', row, column))
+        code_tokenized.append(Token('$', self.eof, row, column))
 
         return code_tokenized
 
