@@ -8,20 +8,20 @@ class DefinitionNode(Node):
     pass
 # region Declaration
 class FunctionDeclNode(DefinitionNode):
-    def __init__(self,id, args, body, return_type=None):
+    def __init__(self, id, args, body, return_type=None):
         self.id=id
         self.args=args
         self.body=body
         self.return_type = return_type
 class ProtocolDeclNode(DefinitionNode):
-    def __init__(self,id, methods, parents, return_type=None):
+    def __init__(self, id, methods, parents, return_type=None):
         self.id=id
         self.methods=methods
         self.parents= parents
         self.return_type = return_type
         
 class TypeDeclNode(DefinitionNode):
-    def __init__(self,id, attributes, parents, args,parent_args):
+    def __init__(self, id, attributes, parents, args, parent_args):
         self.id=id
         self.attributes=attributes
         self.parents= parents
@@ -29,11 +29,11 @@ class TypeDeclNode(DefinitionNode):
         self.parent_args = parent_args
         
 class VariableDeclNode(DefinitionNode):
- def __init__(self,id,type,expr):
-     self.id=id
-     self.type=type
-     self.expr=expr
-     
+    def __init__(self,id,type,expr):
+        self.id=id
+        self.type=type
+        self.expr=expr
+    
 #end region      
 #region Expressions       
 class ExpressionNode(Node):
@@ -133,7 +133,7 @@ class LessThanEqualNode(BinaryNode):
     def operate(lvalue, rvalue):
         return lvalue <= rvalue
     
-class GreaterThanNode(BinaryNode):
+class GreaterThanEqualNode(BinaryNode):
     @staticmethod
     def operate(lvalue, rvalue):
         return lvalue >= rvalue
@@ -210,15 +210,18 @@ class BooleanNode(AtomicNode):
 class StringNode(AtomicNode):
     def __init__(self, lex):
         AtomicNode.__init__(self,lex)
+        
 class FunctCallNode(AtomicNode):
     def __init__(self, lex,args):
         AtomicNode.__init__(self,lex)
         self.args=args
+        
 class PropertyCallNode(AtomicNode):
     def __init__(self, lex,id,args):
         AtomicNode.__init__(self,lex)
         self.args=args
         self.id=id
+        
 class AttributeCallNode(AtomicNode):
     def __init__(self, lex,id):
         AtomicNode.__init__(self,lex)
