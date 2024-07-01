@@ -187,7 +187,7 @@ expression %= for__ + open_parenthesis__ + id__ + in__ + expression + closed_par
 expression %= if__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement + else__ + expression, lambda h, s: IfExpNode(s[3], s[5], s[6], s[8])
 
 stringExpression %= stringExpression1, lambda h, s: s[1]
-stringExpression %= stringExpression1 + as__ + id__, lambda h, s: [] #! La misma duda del H_ast.py
+stringExpression %= stringExpression1 + as__ + id__, lambda h, s: AsNode(s[1], s[3])
 
 elifStatement %= G.Epsilon, lambda h, s: h[0]
 elifStatement %= elif__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement, lambda h, s: [s[3] + s[5]] + s[6]
