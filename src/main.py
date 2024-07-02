@@ -1,4 +1,16 @@
-from .Lexer import regex, tokens, lexer
+from Lexer.lexer import *
+import os
+from grammar.grammar import *
+from Parser.LR1_Parser import *
+from cmp.evaluation import *
 
-lexer = Lexer.lexer.HULK_Lexer()
-lexer.tokenize("let x > 10")
+
+
+
+lexer = HULK_Lexer(G.EOF)
+tokens = lexer.tokenize("5+2;")
+print (tokens)
+parser = LR1Parser(G)
+derivation, operations = parser ([token.token_type for token in tokens ], get_shift_reduce=True)
+ast = evaluate_reverse_parse(derivation,operations,tokens)
+

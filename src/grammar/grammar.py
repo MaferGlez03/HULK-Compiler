@@ -1,5 +1,5 @@
-from ..cmp.pycompiler import Grammar
-from H_ast import *
+from cmp.pycompiler import Grammar
+from .H_ast import *
 
 G = Grammar()
 
@@ -108,7 +108,7 @@ neq__ = G.Terminal('!=')
 #productions
 program %= definitionList + globalExpression, lambda h, s: ProgramNode(s[1], s[2]), None, None
 
-definitionList %= G.Epsilon, lambda h, s: h[0]
+definitionList %= G.Epsilon, lambda h, s: []
 definitionList %= definition + definitionList, lambda h, s: [s[1]] + s[2], None, None 
 
 definition %= functionDefinition, lambda h, s: s[1]
@@ -125,7 +125,7 @@ methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + 
 methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__, lambda h,s: FunctionDeclNode(s[1], s[3], s[8], s[6])
 methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock, lambda h,s: FunctionDeclNode(s[1], s[3], s[7], s[6])
 
-idList %= G.Epsilon, lambda h,s: h[0]
+idList %= G.Epsilon, lambda h,s: []
 idList %= idMultiple, lambda h,s: s[1]
 
 idMultiple %= id__, lambda h,s: [VariableDeclNode(s[1], None, None)]
@@ -146,7 +146,7 @@ typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthes
 # typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 # typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 
-attributeList %= G.Epsilon, lambda h, s: h[0]
+attributeList %= G.Epsilon, lambda h, s: []
 attributeList %= attribute + attributeList, lambda h, s: [s[1]] + s[2]
 
 attribute %= id__ + inicialization__ + expression + semicolon__, lambda h, s: VariableDeclNode(s[1], None, s[3])
@@ -158,12 +158,12 @@ protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket_
 # protocolDefinition %= protocol__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__ + semicolon__
 # protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket__ + inlineMethod + inlineMethodList + closed_curly_bracket__ + semicolon__
 
-inlineMethodList %= G.Epsilon, lambda h, s: h[0]
+inlineMethodList %= G.Epsilon, lambda h, s: []
 inlineMethodList %= inlineMethod + inlineMethodList, lambda h, s: [s[1]] + s[2]
 
 inlineMethod %= id__ + open_parenthesis__ + parameterTypeList + closed_parenthesis__ + type_asignator__ + id__ + semicolon__, lambda h, s: FunctionDeclNode(s[1], s[3], None, s[6])
 
-parameterType %= G.Epsilon, lambda h, s: h[0]
+parameterType %= G.Epsilon, lambda h, s: []
 parameterType %= parameterTypeList, lambda h, s: s[1]
 
 parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: VariableDeclNode(s[1], s[3], None)
@@ -189,7 +189,7 @@ expression %= if__ + open_parenthesis__ + stringExpression2 + closed_parenthesis
 stringExpression %= stringExpression1, lambda h, s: s[1]
 stringExpression %= stringExpression1 + as__ + id__, lambda h, s: AsNode(s[1], s[3])
 
-elifStatement %= G.Epsilon, lambda h, s: h[0]
+elifStatement %= G.Epsilon, lambda h, s: []
 elifStatement %= elif__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement, lambda h, s: [s[3] + s[5]] + s[6]
 
 variableAssign %= id__ + inicialization__ + expression, lambda h, s: [VariableDeclNode(s[1], None, s[3])]
@@ -249,8 +249,8 @@ atom %= open_parenthesis__ + expression + closed_parenthesis__, lambda h, s: s[2
 atom %= open_square_braket__ + argumentList + close_square_braket__, lambda h, s: VectorNode(s[2])
 atom %= open_square_braket__ + expression + bars__ + id__ + in__ + expression + close_square_braket__, lambda h, s: VectorIterableNode(s[2], s[4], s[6])
 
-argumentList %= G.Epsilon, lambda h, s: h[0]
+argumentList %= G.Epsilon, lambda h, s: []
 argumentList %= expression + argumentList2, lambda h, s: [s[1]] + s[2]
 
-argumentList2 %= G.Epsilon, lambda h, s: h[0]
+argumentList2 %= G.Epsilon, lambda h, s: []
 argumentList2 %= comma__ + expression + argumentList2, lambda h, s: [s[2]] + s[3]
