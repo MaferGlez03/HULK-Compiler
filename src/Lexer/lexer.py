@@ -85,7 +85,9 @@ class HULK_Lexer:
 
         code_tokenized.append(Token('$', self.eof, row, column))
 
-        return code_tokenized
+        filtered_tokens = [token for token in code_tokenized if token.token_type != 'SPACES']
+
+        return filtered_tokens
 
 # lexer = HULK_Lexer()
 # code_tokenized = lexer.tokenize("let x = 5; \n cadena = \"tu mama te ama\"")
