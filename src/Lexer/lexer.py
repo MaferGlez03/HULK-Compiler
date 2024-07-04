@@ -2,9 +2,10 @@ from . import regex
 from . import tokens
 from cmp.utils import Token
 
+
 class HULK_Lexer:
-    def __init__(self,eof):
-        self.eof=eof
+    def __init__(self, eof):
+        self.eof = eof
         self.automaton = self.build_automaton()
         print("DFA BUILT")
 
@@ -24,7 +25,7 @@ class HULK_Lexer:
             nfas.append(nfa)
 
         start_state = regex.State()
-        
+
         nfa_combination = regex.NFA(start_state=start_state, accept_states=set())
 
         for nfa in nfas:
@@ -32,13 +33,13 @@ class HULK_Lexer:
             nfa_combination.accept_states.update(nfa.accept_states)
 
         print("NFA COMBINATION COMPLETED")
-        
+
         dfa = nfa_combination.nfa2dfa()
 
         print("NFA TO DFA COMPLETED")
 
         return dfa
-    
+
     def tokenize(self, code: str) -> list:
         code_tokenized = []
         forward = 0
@@ -50,10 +51,9 @@ class HULK_Lexer:
         column = 1
 
         while forward < len(code):
-            
+
             symbol = code[forward]
             actual_lexeme += symbol
-
 
             if symbol not in self.automaton.transitions.get(actualState, {}):
                 if last_token_recognized is not None:
@@ -61,7 +61,7 @@ class HULK_Lexer:
                 else:
                     # Handle error or unrecognized symbol
                     raise Exception(f"Error in Lexical Analysis in row {row} and column {column}")
-                
+
                 if last_lexeme_recognized == "\n":
                     row += 1
                     column = 1
@@ -75,13 +75,12 @@ class HULK_Lexer:
                 if actualState in self.automaton.accept_states:
                     last_token_recognized = self.automaton.get_token(actualState)
                     last_lexeme_recognized = actual_lexeme
-                    
+
                 forward += 1
                 column += 1
-                
 
         if last_token_recognized is not None:
-            code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme) ))
+            code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme)))
 
         code_tokenized.append(Token('$', self.eof, row, column))
 
@@ -92,9 +91,3 @@ class HULK_Lexer:
 # lexer = HULK_Lexer()
 # code_tokenized = lexer.tokenize("let x = 5; \n cadena = \"tu mama te ama\"")
 # print(code_tokenized)
-
-
-
-
-
-

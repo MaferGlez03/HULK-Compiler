@@ -1,5 +1,5 @@
-from.LR1_Automaton import build_LR1_automaton
-from.ShiftReduceParser import ShiftReduceParser
+from .LR1_Automaton import build_LR1_automaton
+from .ShiftReduceParser import ShiftReduceParser
 
 
 class LR1Parser(ShiftReduceParser):
@@ -8,14 +8,14 @@ class LR1Parser(ShiftReduceParser):
 
         automaton = build_LR1_automaton(G)
         for i, node in enumerate(automaton):
-            #if self.verbose: print(i, '\t', '\n\t '.join(str(x) for x in node.state), '\n')
+            # if self.verbose: print(i, '\t', '\n\t '.join(str(x) for x in node.state), '\n')
             node.idx = i
 
         for node in automaton:
             idx = node.idx
             for item in node.state:
-                if  item.NextSymbol and item.NextSymbol.IsTerminal:
-                    self._register(self.action, (idx, item.NextSymbol), (self.SHIFT,node.get(item.NextSymbol.Name).idx))
+                if item.NextSymbol and item.NextSymbol.IsTerminal:
+                    self._register(self.action, (idx, item.NextSymbol), (self.SHIFT, node.get(item.NextSymbol.Name).idx))
                     # self.action[idx, item.NextSymbol] = self.SHIFT,node.get(item.NextSymbol.Name).idx
                 elif not item.NextSymbol and not item.production.Left == G.startSymbol:
 
@@ -25,14 +25,12 @@ class LR1Parser(ShiftReduceParser):
 
                 elif item.IsReduceItem and item.production.Left == G.startSymbol and not item.NextSymbol:
 
-                    self._register(self.action, (idx, G.EOF), (self.OK,None))
+                    self._register(self.action, (idx, G.EOF), (self.OK, None))
 
-                else: #item.NextSymbol and item.NextSymbol.IsNonTerminal:
+                else:  # item.NextSymbol and item.NextSymbol.IsNonTerminal:
                     self._register(self.goto, (idx, item.NextSymbol), node.get(item.NextSymbol.Name).idx)
-
-
 
     @staticmethod
     def _register(table, key, value):
         assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
-        table[key] = value 
+        table[key] = value

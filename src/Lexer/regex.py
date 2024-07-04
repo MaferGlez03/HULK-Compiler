@@ -1,9 +1,11 @@
 from . import tokens
 
+
 class MalformedRegexError(Exception):
     def __init__(self, message="La expresión regular está mal formada"):
         self.message = message
         super().__init__(self.message)
+
 
 class DFA:
     def __init__(self, start_state, accept_states):
@@ -19,7 +21,6 @@ class DFA:
     def accepts(self, input_string: str) -> bool:
         """
         Verifica si el DFA acepta la cadena de entrada.
-        
         :param input_string: Cadena de entrada.
         :return: True si el DFA acepta la cadena, False en caso contrario.
         """
@@ -30,13 +31,13 @@ class DFA:
             else:
                 return False  # No hay transición para el símbolo actual
         return current_state in self.accept_states
-    
+
     def move(self, state, symbol):
         if state in self.transitions and symbol in self.transitions[state]:
             return self.transitions[state][symbol]
         else:
             raise Exception("No existe esa transicion")
-        
+
     def get_token(self, dfa_state):
         tokens_set = set()
         if dfa_state in self.accept_states:
@@ -45,15 +46,12 @@ class DFA:
                     tokens_set.add(nfa_state.token_recognized.value)
         else:
             raise Exception("No es un estado final del DFA")
-        
-        value =  max(tokens_set)
+
+        value = max(tokens_set)
 
         ttype = tokens.TokenType(value)
 
         return tokens.tokens_terminals[ttype]
-                
-
-
 
 
 class State:
@@ -65,13 +63,12 @@ class State:
         """
         self.transitions = {}
         self.token_recognized = None
-    
+
 
 class NFA:
     def __init__(self, start_state: State, accept_states: set):
         self.start_state = start_state
         self.accept_states = accept_states
-        
 
     def add_transition(self, from_state: State, symbol: str, to_states: set):
         """
@@ -87,7 +84,6 @@ class NFA:
     def epsilon_closure(self, states: set) -> set:
         """
         Calcula el cierre epsilon (closure) para un conjunto de estados.
-        
         :param states: Conjunto de estados.
         :return: El cierre epsilon como un conjunto de estados.
         """
@@ -106,7 +102,6 @@ class NFA:
     def accepts(self, input_string: str) -> bool:
         """
         Verifica si el NFA acepta la cadena de entrada.
-        
         param input_string: Cadena de entrada.
         return: True si el NFA acepta la cadena, False en caso contrario.
         """
@@ -118,7 +113,7 @@ class NFA:
                     next_states.update(state.transitions[symbol])
             current_states = self.epsilon_closure(next_states)
         return any(state in self.accept_states for state in current_states)
-    
+
     def nfa2dfa(self):
         start_closure = self.epsilon_closure({self.start_state})
         start_state = frozenset(start_closure)
@@ -131,7 +126,8 @@ class NFA:
             current = unmarked_states.pop()
             dfa_transitions[current] = {}
 
-            for symbol in {symbol for state in current for symbol in state.transitions if symbol}:  # All symbols excluding epsilon
+            # All symbols excluding epsilon
+            for symbol in {symbol for state in current for symbol in state.transitions if symbol}:
                 next_state = set()
                 for nfa_state in current:
                     if symbol in nfa_state.transitions:
@@ -153,7 +149,6 @@ class NFA:
             for symbol, to_state in transitions.items():
                 dfa.add_transition(from_state, symbol, to_state)
 
-
         return dfa
 
     @staticmethod
@@ -162,9 +157,10 @@ class NFA:
         accept_states = nfa2.accept_states
         new_nfa = NFA(start_state, accept_states)
         for final_state in nfa1.accept_states:
-            new_nfa.add_transition(from_state=final_state, symbol='', to_states={nfa2.start_state})
+            new_nfa.add_transition(
+                from_state=final_state, symbol='', to_states={nfa2.start_state})
         return new_nfa
-    
+
     @staticmethod
     def union(nfa1, nfa2):
         start_state = State()
@@ -175,7 +171,7 @@ class NFA:
             for final_state in nfa.accept_states:
                 nfa.add_transition(from_state=final_state, symbol='', to_states={accept_state})
         return new_nfa
-    
+
     @staticmethod
     def kleene_star(nfa):
         start_state = State()
@@ -185,9 +181,9 @@ class NFA:
         new_nfa.add_transition(from_state=start_state, symbol='', to_states={nfa.start_state, accept_state})
         for final_state in nfa.accept_states:
             nfa.add_transition(from_state=final_state, symbol='', to_states={nfa.start_state, accept_state})
-        
+
         return new_nfa
-    
+
     @staticmethod
     def create_nfa(symbols: str):
         start_state = State()
@@ -199,28 +195,26 @@ class NFA:
         nfa = NFA(start_state, {new_state})
         return nfa
 
-    
-
-
 
 def infix2postfix(regex):
-    operators_precedence= {'*': 3, '?':2, '|':1} #mientras mayor sea el key mayor es la precedencia
+    # mientras mayor sea el key mayor es la precedencia
+    operators_precedence = {'*': 3, '?': 2, '|': 1}
     output_queue = []
     operators_stack = []
 
     for symbol in regex:
         # En caso de que el simbolo actual tenga menor precedencia que el que esta en el tope del stack entonces hago pop al tope del stack y voy annadiendo eso al output hasta que el stack se quede vacio o quede un operador con menor precedencia que el actual en el top del stack
         if (symbol in operators_precedence) and (operators_stack) and (operators_stack[-1] in operators_precedence):
-            while(operators_stack and operators_stack[-1] in operators_precedence and operators_precedence[operators_stack[-1]] >= operators_precedence[symbol]):
+            while (operators_stack and operators_stack[-1] in operators_precedence and operators_precedence[operators_stack[-1]] >= operators_precedence[symbol]):
                 top_stack = operators_stack.pop()
                 output_queue.append(top_stack)
             operators_stack.append(symbol)
-        #En caso de que el simbolo sea un operador o un '(' annado eso al stack
+        # En caso de que el simbolo sea un operador o un '(' annado eso al stack
         elif symbol in operators_precedence or symbol == '(':
             operators_stack.append(symbol)
-        #En caso de que sea un ')' voy popeando los elementos del stack y annadiendolos al output hasta encontrar un '(' y luego deshecho los 2  parentesis
+        # En caso de que sea un ')' voy popeando los elementos del stack y annadiendolos al output hasta encontrar un '(' y luego deshecho los 2  parentesis
         elif symbol == ')':
-            while(True):
+            while (True):
                 if not operators_stack:
                     raise MalformedRegexError()
                 top_stack = operators_stack.pop()
@@ -228,15 +222,16 @@ def infix2postfix(regex):
                     output_queue.append(top_stack)
                 else:
                     break
-        #Si es cualquier otro tipo de simbolo se annade al output       
+        # Si es cualquier otro tipo de simbolo se annade al output
         else:
             output_queue.append(symbol)
 
-    while(operators_stack):
+    while (operators_stack):
         top_stack = operators_stack.pop()
         output_queue.append(top_stack)
-    
+
     return output_queue
+
 
 def regex2nfa(regex):
     postfix_regex = infix2postfix(regex)
@@ -260,9 +255,6 @@ def regex2nfa(regex):
         else:
             new_nfa = NFA.create_nfa(symbol)
             nfa_stack.append(new_nfa)
-        
+
     final_nfa = nfa_stack.pop()
-    return final_nfa    
-
-
-
+    return final_nfa
