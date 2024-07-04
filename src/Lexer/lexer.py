@@ -84,7 +84,7 @@ class HULK_Lexer:
 
         code_tokenized.append(Token('$', self.eof, row, column))
 
-        filtered_tokens = [token for token in code_tokenized if token.token_type != 'SPACES']
+        filtered_tokens = [token for token in code_tokenized if token.token_type != 'SPACES' and token.token_type != 'ESCAPED_CHAR']
 
         return filtered_tokens
 
