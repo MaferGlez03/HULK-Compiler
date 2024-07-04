@@ -1,3 +1,4 @@
+from Tools.errors import *
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
     REDUCE = 'REDUCE'
@@ -18,15 +19,17 @@ class ShiftReduceParser:
         cursor = 0
         output = []
         operations = []
-        # Can add modifications to improve
+        
         while True:
             state = stack[-1]
-            lookahead = w[cursor]  # Maybe here I should put
-            # if self.verbose: print(stack, '<---||--->', w[cursor:])
-
-            if (state, lookahead) not in self.action:
-                return None
-
+            current = w[cursor]
+            lookahead = w[cursor].token_type 
+            #if self.verbose: print(stack, '<---||--->', w[cursor:])
+           
+            if(state,lookahead) not in self.action:
+                return (errors(current.row,current.column,f'Unexpected token {current.lex}','Parsing Error'),None)
+            
+            
             action, tag = self.action[state, lookahead]
 
             if action == self.SHIFT:

@@ -1,0 +1,267 @@
+from cmp.semantic import Scope, SemanticError
+import cmp.visitor as visitor
+from grammar.H_ast import *
+
+class scopeDef:
+    def __init__(self,context, errors=[]):
+        self.context = context
+        self.errors = errors
+        pass
+
+    @visitor.on('node')
+    def visit(self, node, scope):
+        pass
+    
+    @visitor.when(ProgramNode)
+    def visit(self, node:ProgramNode, scope:Scope):
+        node.scope = Scope()
+        for item in node.definitionList:
+            self.visit(item, scope.create_child())
+        self.visit(node.globalExpression,scope.create_child())
+        
+    @visitor.when(ExpBlockNode)
+    def visit(self, node:ExpBlockNode, scope:Scope):
+        expScope= node.scope=scope.create_child()
+        for item in node.expLineList:
+            self.visit(item,expScope.create_child())
+            
+    @visitor.when(NewExpNode)
+    def visit(self, node:NewExpNode, scope:Scope):
+        node.scope = scope
+        for item in node.args:
+            self.visit(item,scope.create_child())
+            
+    @visitor.when(AssignExpNode)
+    def visit(self, node:AssignExpNode, scope:Scope):
+         node.scope = scope
+         self.visit(node.var,scope.create_child())
+         self.visit(node.expr,scope.create_child())
+         
+    @visitor.when(LetExpNode)
+    def visit(self, node:LetExpNode, scope:Scope):
+        letScope= node.scope = scope.create_child()
+        for item in node.varAssignation:
+          self.visit(item, letScope)
+        self.visit(node.expr,letScope)
+        
+    @visitor.when(WhileExpNode)
+    def visit(self, node:WhileExpNode, scope:Scope):
+        whileScope= node.scope = scope.create_child()  
+        self.visit(node.expr, whileScope.create_child()) 
+        self.visit(node.cond, whileScope.create_child()) 
+        
+    @visitor.when(ForExpNode)
+    def visit(self, node:ForExpNode, scope:Scope):    
+       forScope= node.scope = scope.create_child()  
+       forScope.define_variable(id,None) #!Duda
+       self.visit(node.expr, forScope) 
+       self.visit(node.body, forScope.create_child()) 
+       
+    @visitor.when(IfExpNode)
+    def visit(self, node:IfExpNode, scope:Scope):
+       ifScope= node.scope = scope.create_child()
+       self.visit(node.cond, ifScope.create_child())               #!check over
+       self.visit(node.if_expr, ifScope.create_child()) 
+       self.visit(node.elif_expr, ifScope.create_child()) 
+       self.visit(node.else_expr, ifScope.create_child()) 
+       
+    @visitor.when(IndexExpNode)
+    def visit(self, node:IndexExpNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.factor,scope.create_child())
+        self.visit(node.expr,scope.create_child())
+        
+    #!VECTOR ITERABLE NODE
+    @visitor.when(ConcatNode)
+    def visit(self, node:ConcatNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(ConcatSpaceNode)
+    def visit(self, node:ConcatSpaceNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(AndNode)
+    def visit(self, node:AndNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(OrNode)
+    def visit(self, node:OrNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(NotEqualNode)
+    def visit(self, node:NotEqualNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(LessThanNode)
+    def visit(self, node:LessThanNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(EqualNode)
+    def visit(self, node:EqualNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(GreaterThanNode)
+    def visit(self, node:GreaterThanNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(LessThanEqualNode)
+    def visit(self, node:LessThanEqualNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(GreaterThanEqualNode)
+    def visit(self, node:GreaterThanEqualNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(IsNode)
+    def visit(self, node:IsNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(AsNode)
+    def visit(self, node:AsNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(PlusNode)
+    def visit(self, node:PlusNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(MinusNode)
+    def visit(self, node:MinusNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(DivisionNode)
+    def visit(self, node:DivisionNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(MultiplicationNode)
+    def visit(self, node:MultiplicationNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(ModuleNode)
+    def visit(self, node:ModuleNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(PowerNode)
+    def visit(self, node:PowerNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.left,scope.create_child())
+        self.visit(node.right,scope.create_child())
+        
+    @visitor.when(NotNode)
+    def visit(self, node:NotNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.node,scope.create_child())
+    
+    @visitor.when(NegNode)
+    def visit(self, node:NegNode, scope:Scope):
+        node.scope = scope
+        self.visit(node.node,scope.create_child())
+        
+    @visitor.when(VectorNode)
+    def visit(self, node:VectorNode, scope:Scope):
+        node.scope = scope
+        for item in node.lex:
+         self.visit(item,scope.create_child())
+         
+    @visitor.when(VariableNode)
+    def visit(self, node:VariableNode, scope:Scope):
+        node.scope = scope
+    
+    @visitor.when(NumberNode)
+    def visit(self, node:NumberNode, scope:Scope):
+        node.scope = scope
+        
+    @visitor.when(BooleanNode)
+    def visit(self, node:BooleanNode, scope:Scope):
+        node.scope = scope
+        
+    @visitor.when(StringNode)
+    def visit(self, node:StringNode, scope:Scope):
+        node.scope = scope
+        
+    @visitor.when(FunctCallNode)
+    def visit(self, node:FunctCallNode, scope:Scope):
+        node.scope = scope
+        for item in node.args:
+          self.visit(item,scope.create_child())
+          
+    @visitor.when(PropertyCallNode)
+    def visit(self, node:PropertyCallNode, scope:Scope):
+        node.scope = scope
+        for item in node.args:#!duda:debo llamar el lex o el id?
+          self.visit(item,scope.create_child())
+          
+    @visitor.when(AttributeCallNode)
+    def visit(self, node:AttributeCallNode, scope:Scope):
+        node.scope = scope
+        for item in node.args:
+          self.visit(item,scope.create_child())
+          
+    @visitor.when(FunctionDeclNode)
+    def visit(self, node:FunctionDeclNode, scope:Scope):
+        node.scope = scope
+        func_scope= scope.create_child()
+        for item in node.args:
+            try:
+                func_scope.define_variable(item,self.context.get_type(item.type))#!SEE
+            except SemanticError as error:
+                self.errors.append('Semantic error,')
+        self.visit(node.body,func_scope) 
+               
+    @visitor.when(ProtocolDeclNode)
+    def visit(self, node:ProtocolDeclNode, scope:Scope):        
+        node.scope = scope
+        prot_scope= scope.create_child() 
+        for item in node.methods:
+          self.visit(item,prot_scope)
+          
+    @visitor.when(TypeDeclNode)
+    def visit(self, node:TypeDeclNode, scope:Scope):
+        node.scope = scope
+        type_scope= scope.create_child() 
+        #!implement 
+        
+    @visitor.when(VariableDeclNode)
+    def visit(self, node:VariableDeclNode, scope:Scope):
+        node.scope = scope
+        var_scope= scope.create_child()
+        try:
+            var_scope.define_variable(node.id,self.context.get_type(node.type))#!SEE
+        except SemanticError as error:
+                self.errors.append('Type error,')
+        self.visit(node.expr,var_scope)     
+    
+        
