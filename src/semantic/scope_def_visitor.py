@@ -1,10 +1,12 @@
 from cmp.semantic import Scope, SemanticError
 import cmp.visitor as visitor
 from grammar.H_ast import *
+from Tools.errors import *
 
 class scopeDef:
-    def __init__(self,context, errors=[]):
+    def __init__(self,context, current_Type, errors=[]):
         self.context = context
+        self.current_type=None
         self.errors = errors
         pass
 
@@ -13,11 +15,12 @@ class scopeDef:
         pass
     
     @visitor.when(ProgramNode)
-    def visit(self, node:ProgramNode, scope:Scope):
-        node.scope = Scope()
+    def visit(self, node:ProgramNode, scope:Scope =None):
+        node.scope =scope= Scope()
         for item in node.definitionList:
             self.visit(item, scope.create_child())
         self.visit(node.globalExpression,scope.create_child())
+        return scope
         
     @visitor.when(ExpBlockNode)
     def visit(self, node:ExpBlockNode, scope:Scope):
@@ -53,14 +56,14 @@ class scopeDef:
     @visitor.when(ForExpNode)
     def visit(self, node:ForExpNode, scope:Scope):    
        forScope= node.scope = scope.create_child()  
-       forScope.define_variable(id,None) #!Duda
+       forScope.define_variable(id,None) 
        self.visit(node.expr, forScope) 
        self.visit(node.body, forScope.create_child()) 
        
     @visitor.when(IfExpNode)
     def visit(self, node:IfExpNode, scope:Scope):
-       ifScope= node.scope = scope.create_child()
-       self.visit(node.cond, ifScope.create_child())               #!check over
+       ifScope= node.scope = scope
+       self.visit(node.cond, ifScope.create_child())               
        self.visit(node.if_expr, ifScope.create_child()) 
        self.visit(node.elif_expr, ifScope.create_child()) 
        self.visit(node.else_expr, ifScope.create_child()) 
@@ -71,7 +74,14 @@ class scopeDef:
         self.visit(node.factor,scope.create_child())
         self.visit(node.expr,scope.create_child())
         
-    #!VECTOR ITERABLE NODE
+    @visitor.when(VectorIterableNode)
+    def visit(self, node: VectorIterableNode, scope: Scope):
+        node.scope = scope
+        comprehension_scope = scope.create_child()
+        comprehension_scope.define_variable(node.id, None)
+        self.visit(node.expr, comprehension_scope)
+        self.visit(node.iterable, scope.create_child())
+        
     @visitor.when(ConcatNode)
     def visit(self, node:ConcatNode, scope:Scope):
         node.scope = scope
@@ -221,8 +231,9 @@ class scopeDef:
     @visitor.when(PropertyCallNode)
     def visit(self, node:PropertyCallNode, scope:Scope):
         node.scope = scope
-        for item in node.args:#!duda:debo llamar el lex o el id?
+        for item in node.args:
           self.visit(item,scope.create_child())
+        self.visit(node.lex,scope.create_child())
           
     @visitor.when(AttributeCallNode)
     def visit(self, node:AttributeCallNode, scope:Scope):
@@ -236,32 +247,41 @@ class scopeDef:
         func_scope= scope.create_child()
         for item in node.args:
             try:
-                func_scope.define_variable(item,self.context.get_type(item.type))#!SEE
+                func_scope.define_variable(item,self.context.get_type(item.type))
             except SemanticError as error:
-                self.errors.append('Semantic error,')
+                self.errors.append(errors(0,0,str(error),'Semantic Error'))#? set row and column
         self.visit(node.body,func_scope) 
                
     @visitor.when(ProtocolDeclNode)
     def visit(self, node:ProtocolDeclNode, scope:Scope):        
         node.scope = scope
-        prot_scope= scope.create_child() 
+        prot_scope= scope.create_child()
+        self.current_type = self.context.get_type(node.id) 
         for item in node.methods:
           self.visit(item,prot_scope)
+        self.current_type=None
           
     @visitor.when(TypeDeclNode)
     def visit(self, node:TypeDeclNode, scope:Scope):
         node.scope = scope
-        type_scope= scope.create_child() 
-        #!implement 
+        type_scope= scope.create_child()
+        self.current_type = self.context.get_type(node.id)
+        for item in node.attributes:
+            self.visit(item, type_scope)
+        self.current_type=None
         
     @visitor.when(VariableDeclNode)
     def visit(self, node:VariableDeclNode, scope:Scope):
         node.scope = scope
         var_scope= scope.create_child()
         try:
-            var_scope.define_variable(node.id,self.context.get_type(node.type))#!SEE
+            var_type =self.context.get_type(node.type)
         except SemanticError as error:
-                self.errors.append('Type error,')
+            if node.type!=None:
+                self.errors.append(errors(0,0,str(error),'Semantic Error'))#? set row and column
+            var_type =self.context.get_type('Object')
+            
+        var_scope.define_variable(node.id,self.context.get_type(node.type))
         self.visit(node.expr,var_scope)     
     
         
