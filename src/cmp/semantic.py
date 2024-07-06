@@ -206,6 +206,12 @@ class Scope:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
             return self.parent.find_variable(vname, self.index) if self.parent is None else None
+    def find_variable1(self, vname, index=None):
+        locals = self.locals if index is None else itt.islice(self.locals, index)
+        try:
+            return next(x for x in locals if x.name[0] == vname)
+        except StopIteration:
+            return self.parent.find_variable(vname, self.index) if self.parent is None else None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None

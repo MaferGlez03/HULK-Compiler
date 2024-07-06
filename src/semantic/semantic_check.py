@@ -1,7 +1,7 @@
-from src.semantic.AST_type_inference import *
-from src.semantic.scope_def_visitor import *
-from src.semantic.type_builder_visitor import *
-from src.semantic.type_def_visitor import *
+from.AST_type_inference import *
+from .scope_def_visitor import *
+from .type_builder_visitor import *
+from .type_def_visitor import *
 
 
 def semantic_check(ast):
