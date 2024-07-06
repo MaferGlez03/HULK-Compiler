@@ -1,5 +1,5 @@
-import src.cmp.visitor as visitor
-from src.cmp.semantic import  ErrorType,SemanticError
+import cmp.visitor as visitor
+from cmp.semantic import  ErrorType,SemanticError
 from Tools.errors import *
 from grammar.H_ast import *
 
