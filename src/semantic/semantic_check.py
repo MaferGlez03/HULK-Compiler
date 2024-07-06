@@ -1,25 +1,26 @@
-from src.semantic.AST_type_inference import *
-from src.semantic.scope_def_visitor import *
-from src.semantic.type_builder_visitor import *
-from src.semantic.type_def_visitor import *
+from .AST_type_inference import *
+from .scope_def_visitor import *
+from .type_builder_visitor import *
+from .type_def_visitor import *
+from Tools.errors import *
 
 
 def semantic_check(ast):
-    errors = []
+    errs = []
     
     print("COLLECTING TYPES...")
     
-    type_collector = typeDef(errors)
-    context, errors = type_collector.visit(ast)
+    type_collector = typeDef(errs)
+    context, errs = type_collector.visit(ast)
 
     print("BUILDING TYPES...")
     
-    type_fill = type_builder(context, errors)
-    context, errors = type_fill.visit(ast)
+    type_fill = type_builder(context, errs)
+    context, errs = type_fill.visit(ast)
 
     print("BUILDING SCOPES...")
     
-    var_collector = scopeDef(context, errors)
+    var_collector = scopeDef(context, errs)
     scope = var_collector.visit(ast)
 
     scope.define_variable("PI", context.get_type("Number"))
@@ -27,11 +28,12 @@ def semantic_check(ast):
 
     print("CHECKING TYPES...")
     
-    type_inf = type_inferer(context, errors)
-    context, errors = type_inf.visit(ast, scope)
+    type_inf = type_inference(context, errs)
+    context, errs = type_inf.visit(ast, scope)
 
-    if errors:
-        for error in errors:
-            print(error)
+    if errs:
+        for error in errs:
+            print("hay error")
+            errors.printError(error)
         return False
     return True

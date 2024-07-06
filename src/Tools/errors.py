@@ -15,3 +15,5 @@ class errors:
                 message.append(f", Column: {self.column}")
         elif self.column != 0:
             message.append(f" | Column: {self.column}")
+            
+        print(message)

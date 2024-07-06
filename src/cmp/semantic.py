@@ -120,6 +120,23 @@ class Type:
     def __repr__(self):
         return str(self)
 
+class AutoType(Type):
+    def __init__(self):
+        super().__init__('AutoType')
+
+    def bypass(self):
+        # Permite que AutoType se conforme a cualquier otro tipo
+        return True
+    
+    def __eq__(self, other):
+        return isinstance(other, Type) and self.name == other.name
+
+    def __str__(self):
+        return 'type AutoType {}'
+
+    def __repr__(self):
+        return str(self)
+
 class ErrorType(Type):
     def __init__(self):
         Type.__init__(self, '<error>')
@@ -145,6 +162,28 @@ class VoidType(Type):
 
     def __eq__(self, other):
         return isinstance(other, VoidType)
+    
+class VectorType(Type):
+    def __init__(self, element_type):
+        super().__init__('Vector')
+        self.element_type = element_type
+
+    def get_element_type(self):
+        return self.element_type
+
+    def conforms_to(self, other):
+        if isinstance(other, VectorType):
+            return self.element_type.conforms_to(other.element_type)
+        return super().conforms_to(other)
+
+    def __eq__(self, other):
+        return isinstance(other, VectorType) and self.element_type == other.element_type
+
+    def __str__(self):
+        return f'Vector of {self.element_type.name}'
+
+    def __repr__(self):
+        return str(self)
 
 class IntType(Type):
     def __init__(self):
@@ -175,6 +214,36 @@ class Context:
     def __repr__(self):
         return str(self)
 
+    def lca(self, a: Type, b: Type) -> Type:
+            ancestors_a = set()
+            current = a
+            while current is not None:
+                ancestors_a.add(current)
+                current = current.parent
+
+            current = b
+            while current is not None:
+                if current in ancestors_a:
+                    return current
+                current = current.parent
+
+            return None
+        
+    def lowest_common_ancestor(self, types: list[Type]) -> Type:
+        if not types:
+            raise ValueError("The types list must not be empty.")
+        
+        if len(types) == 1:
+            return types[0]
+
+        common_ancestor = types[0]
+        for typex in types[1:]:
+            common_ancestor = self.lca(common_ancestor, typex)
+            if common_ancestor is None:
+                break
+        
+        return common_ancestor
+    
 class VariableInfo:
     def __init__(self, name, vtype):
         self.name = name
