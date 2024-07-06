@@ -4,10 +4,12 @@ import os
 from grammar.grammar import *
 from Parser.LR1_Parser import *
 from cmp.evaluation import *
-from semantic.AST_printer import *
+from Semantic.AST_printer import *
 from Tools.errors import *
 from Tools.PKL_Files import *
-from semantic.semantic_check import *
+from Semantic.semantic_check import *
+from AST_Interpreter.Interpreter import *
+
 
 
 file_path = "code/test.hulk"
@@ -34,3 +36,7 @@ formatter = FormatVisitor()
 print(formatter.visit(ast))
 
 semantic_check(ast)
+
+interpreter = Interpreter(ast)
+result= interpreter.visit(ast)
+print (result)
