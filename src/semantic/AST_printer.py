@@ -88,11 +88,13 @@ class FormatVisitor(object):
         return f'{ans}\n{cond}\n{assign}\n{body}'
 
     @visitor.when(IfExpNode)
-    def visit(self, node, tabs=0):
+    def visit(self, node, tabs=0, isElif=False):
         ans = '\t' * tabs + f'\\__IfExpNode: if (<cond>) <ifExpr> elif (<elifExpr>) else (<elseExpr>)'
         cond = self.visit(node.cond, tabs + 1)
         ifExpr = self.visit(node.if_expr, tabs + 1)
-        elifExpr = self.visit(node.elif_expr, tabs + 1)
+        if isElif:
+            return f'{ans}\n{cond}\n{ifExpr}'
+        elifExpr = '\n'.join(self.visit(elif_, tabs + 1, True) for elif_ in node.elif_expr)
         elseExpr = self.visit(node.else_expr, tabs + 1)
         return f'{ans}\n{cond}\n{ifExpr}\n{elifExpr}\n{elseExpr}' if elifExpr != [] else f'{ans}\n{cond}\n{elseExpr}'
 
