@@ -1,6 +1,8 @@
 from . import regex
 from . import tokens
 from cmp.utils import Token
+from Tools.errors import *
+import sys
 
 
 class HULK_Lexer:
@@ -59,8 +61,9 @@ class HULK_Lexer:
                 if last_token_recognized is not None:
                     code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme) + 1))
                 else:
-                    # Handle error or unrecognized symbol
-                    raise Exception(f"Error in Lexical Analysis in row {row} and column {column}")
+                    error = errors(row, column, 'Unrecognized symbol', 'Lexical Analysis Error')
+                    error.printError()
+                    sys.exit()
 
                 if last_lexeme_recognized == "\n":
                     row += 1
