@@ -28,15 +28,15 @@ class type_inference:
         if node.id.startswith('<error>'):
             return
         scope = scope.create_child()
-        self.current_type = self.context.get_type(node.id)
+        self.current_type = self.context.get_type(str(node.id))
 
         if (len(node.args) == 0) and (node.parents != None):
-            node.args = self.context.get_type(node.parents).attributes
+            node.args = self.context.get_type(str(node.parents)).attributes
             for arg in node.args:
                 try:
                     self.current_type.define_attribute(
-                        arg, self.context.get_type(arg))
-                    scope.define_variable(arg, self.context.get_type(arg))
+                        arg, self.context.get_type(str(arg)))
+                    scope.define_variable(arg, self.context.get_type(str(arg)))
                 except SemanticError as e:
                     self.current_type.define_attribute(arg, self.object_type)
                     scope.define_variable(arg, self.object_type)
@@ -48,9 +48,9 @@ class type_inference:
                 try:
                     if add:
                         self.current_type.define_attribute(
-                            arg, self.context.get_type(arg))
+                            arg, self.context.get_type(str(arg)))
                     scope.define_variable(
-                        arg.id, self.context.get_type(arg.id))
+                        arg.id, self.context.get_type(str(arg.id)))
                 except SemanticError as e:
                     if add:
                         self.current_type.define_attribute(
@@ -75,7 +75,7 @@ class type_inference:
         if node.id.startswith('<error>'):
             return
         scope = scope.create_child()
-        self.current_type = self.context.get_type(node.id)
+        self.current_type = self.context.get_type(str(node.id))
 
         if self.current_type.parent:
             parent_type = self.current_type.parent
@@ -83,7 +83,7 @@ class type_inference:
                 self.errors.append(errors(0, 0, f'Invalid parent type for protocol "{node.id}"', "SEMANTIC ERROR"))
 
         for method in node.methods:
-            self.current_type.define_method(method.id, [], [], self.context.get_type(method.return_type))
+            self.current_type.define_method(method.id, [], [], self.context.get_type(str(method.return_type)))
             self.visit(method, scope)
 
         self.current_type = None
@@ -125,7 +125,7 @@ class type_inference:
 
         if node.type != None:
             try:
-                var_type = self.context.get_type(node.type)
+                var_type = self.context.get_type(str(node.type))
             except SemanticError as e:
                 var_type = ErrorType()
         else:
@@ -211,7 +211,7 @@ class type_inference:
         if not iterable_type.conforms_to(iterable_protocol):
             self.errors.append(errors(0, 0, 'Expression must conform to Iterable protocol', "SEMANTIC ERROR"))
         try:
-            vtype = self.context.get_type(node.id)
+            vtype = self.context.get_type(str(node.id))
         except Exception as e:
             vtype = self.object_type
 
@@ -229,7 +229,7 @@ class type_inference:
     @visitor.when(NewExpNode)
     def visit(self, node, scope):
         try:
-            ttype = self.context.get_type(node.id)
+            ttype = self.context.get_type(str(node.id))
             args_types = [self.visit(arg, scope) for arg in node.args]
         except SemanticError as e:
             return ErrorType()
@@ -240,7 +240,7 @@ class type_inference:
 
         for arg_type, attr in zip(args_types, ttype.attributes):
             try:
-                param_type = self.context.get_type(attr)
+                param_type = self.context.get_type(str(attr))
                 if not arg_type.conforms_to(param_type):
                     self.errors.append(errors(0, 0, f'Incompatible argument type {arg_type} for parameter type {param_type} while calling "{node.type_id}"', "SEMANTIC ERROR"))
                     return ErrorType()
@@ -252,7 +252,7 @@ class type_inference:
     def visit(self, node, scope):
         if node.lex == "self":
             return self.object_type
-        var = scope.find_variable(node.lex)
+        var = node.scope.find_variable(str(node.lex))
         if var is None:
             self.errors.append(errors(0, 0, f'Variable {node.id} not defined', "SEMANTIC ERROR"))
             return ErrorType()
@@ -453,7 +453,7 @@ class type_inference:
     @visitor.when(AsNode)
     def visit(self, node, scope):
         expr_type = self.visit(node.left, scope)
-        cast_type = self.context.get_type(node.right)
+        cast_type = self.context.get_type(str(node.right))
 
         if not expr_type.conforms_to(cast_type) and not cast_type.conforms_to(expr_type):
             self.errors.append(errors(0, 0, f'Cannot cast {expr_type} to {cast_type}', "SEMANTIC ERROR"))
