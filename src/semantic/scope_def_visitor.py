@@ -248,7 +248,7 @@ class scopeDef:
         func_scope = scope.create_child()
         for item in node.args:
             try:
-                func_scope.define_variable(item, self.context.get_type(item.type))
+                func_scope.define_variable(item,self.context.get_type(item.type))
             except SemanticError as error:
                 # ? set row and column
                 self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
@@ -257,8 +257,8 @@ class scopeDef:
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode, scope: Scope):
         node.scope = scope
-        prot_scope = scope.create_child()
-        self.current_type = self.context.get_type(node.id)
+        prot_scope= scope.create_child()
+        self.current_type = self.context.get_type(node.id) 
         for item in node.methods:
             self.visit(item, prot_scope)
         self.current_type = None
@@ -266,7 +266,7 @@ class scopeDef:
     @visitor.when(TypeDeclNode)
     def visit(self, node: TypeDeclNode, scope: Scope):
         node.scope = scope
-        type_scope = scope.create_child()
+        type_scope= scope.create_child()
         self.current_type = self.context.get_type(node.id)
         for item in node.attributes:
             self.visit(item, type_scope)
@@ -277,12 +277,13 @@ class scopeDef:
         node.scope = scope
         var_scope = scope.create_child()
         try:
-            var_type = self.context.get_type(node.type)
+            var_type =self.context.get_type(node.type)
         except SemanticError as error:
-            if node.type != None:
-                # ? set row and column
-                self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
-            var_type = self.context.get_type('Object')
-
-        var_scope.define_variable(node.id, self.context.get_type(node.type))
-        self.visit(node.expr, var_scope)
+            if node.type!=None:
+                self.errors.append(errors(0,0,str(error),'Semantic Error'))#? set row and column
+            var_type =self.context.get_type('Object')
+            
+        var_scope.define_variable(node.id,self.context.get_type(node.type))
+        self.visit(node.expr,var_scope)     
+    
+        
