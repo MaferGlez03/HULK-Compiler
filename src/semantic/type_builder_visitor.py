@@ -1,5 +1,5 @@
 import cmp.visitor as visitor
-from cmp.semantic import  ErrorType,SemanticError
+from cmp.semantic import  ErrorType,SemanticError,AutoType
 from Tools.errors import *
 from grammar.H_ast import *
 
@@ -22,11 +22,11 @@ class type_builder:
     @visitor.when(VariableDeclNode)
     def visit(self, node:VariableDeclNode):
         try:
-                var_type = self.context.get_type(node.type)
+                var_type = self.context.get_type(str(node.type))
         except SemanticError as e:
             if node.type!= None:
                 self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
-            var_type = self.context.get_type('Object')
+            var_type = AutoType()
                 
         try:
             self.current_type.define_attribute(node.id, var_type)
@@ -38,7 +38,7 @@ class type_builder:
     def visit(self, node: TypeDeclNode):
         
         try:
-            self.current_type = self.context.get_type(node.id)
+            self.current_type = self.context.get_type(str(node.id))
         except SemanticError as e:
             self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
             self.current_type = ErrorType()
@@ -46,7 +46,7 @@ class type_builder:
         
         if node.parents !=None:
             try:
-                current = current_type_parent = self.context.get_type(node.parent)
+                current = current_type_parent = self.context.get_type(str(node.parent))
                
                 while current is not None:
                     if current.name == self.current_type.name:
@@ -73,7 +73,7 @@ class type_builder:
     def visit(self, node: ProtocolDeclNode):
         
         try:
-            self.current_type = self.context.get_type(node.id)
+            self.current_type = self.context.get_type(str(node.id))
         except SemanticError as e:
             self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
             self.current_type = ErrorType()
@@ -103,7 +103,7 @@ class type_builder:
          try:
                 self.visit(item)
          except SemanticError as e:
-                self.errors.append(errors(0,0,"Bucle inheritance",'Semantic Error'))#? set row and column
+                self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
         self.current_type=None
          
     @visitor.when(FunctionDeclNode)
@@ -112,13 +112,13 @@ class type_builder:
 
         if node.return_type is not None:
             try:
-                return_type = self.context.get_type(node.return_type)
+                return_type = self.context.get_type(str(node.return_type))
             except SemanticError as e:
                 self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
                 return_type = ErrorType()
             
         else:
-            return_type = self.context.get_type('Object')
+            return_type = AutoType()
 
         
         if self.current_type==None:
@@ -149,11 +149,11 @@ class type_builder:
                 params_types[index] = ErrorType()
             else:
                 try:
-                    param_type = self.context.get_type(param_type_name)
+                    param_type = self.context.get_type(str(param_type_name))
                 except SemanticError as e:
                     if param_type_name!=None:
                         self.errors.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
-                    param_type = self.context.get_type('Object')
+                    param_type = AutoType()
                 params_types.append(param_type)
                 params_names.append(param_name)
 

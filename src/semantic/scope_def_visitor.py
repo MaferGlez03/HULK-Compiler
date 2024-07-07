@@ -1,4 +1,4 @@
-from cmp.semantic import Scope, SemanticError
+from cmp.semantic import Scope, SemanticError,AutoType
 import cmp.visitor as visitor
 from grammar.H_ast import *
 from Tools.errors import *
@@ -57,7 +57,7 @@ class scopeDef:
     @visitor.when(ForExpNode)
     def visit(self, node: ForExpNode, scope: Scope):
         forScope = node.scope = scope.create_child()
-        forScope.define_variable(id, None)
+        forScope.define_variable(id, AutoType())
         self.visit(node.expr, forScope)
         self.visit(node.body, forScope.create_child())
 
@@ -239,19 +239,20 @@ class scopeDef:
     @visitor.when(AttributeCallNode)
     def visit(self, node: AttributeCallNode, scope: Scope):
         node.scope = scope
-        for item in node.args:
-            self.visit(item, scope.create_child())
+        self.visit(node.lex, scope.create_child())
+        self.visit(node.id, scope.create_child())
 
     @visitor.when(FunctionDeclNode)
     def visit(self, node: FunctionDeclNode, scope: Scope):
-        node.scope = scope
-        func_scope = scope.create_child()
+        func_scope = node.scope = scope.create_child()
+        
         for item in node.args:
             try:
                 func_scope.define_variable(item,self.context.get_type(str(item.type)))
             except SemanticError as error:
-                # ? set row and column
-                self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
+                if item.type!=None:
+                    self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
+                #!ELSE???
         self.visit(node.body, func_scope)
 
     @visitor.when(ProtocolDeclNode)
@@ -268,6 +269,11 @@ class scopeDef:
         node.scope = scope
         type_scope= scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
+        for param in node.args:
+            try:
+                node.scope.define_variable(param.id, self.context.get_type(str(param)))
+            except SemanticError as e:
+                node.scope.define_variable(param.id, AutoType())
         for item in node.attributes:
             self.visit(item, type_scope)
         self.current_type = None
@@ -283,7 +289,7 @@ class scopeDef:
                 self.errors.append(errors(0,0,str(error),'Semantic Error'))#? set row and column
             var_type =self.context.get_type('Object')
             
-        var_scope.define_variable(node.id,self.context.get_type(str(node.type)))
+        scope.define_variable(node.id,var_type)
         self.visit(node.expr,var_scope)     
     
         
