@@ -148,7 +148,7 @@ class Interpreter:
     @when(NegNode)
     def visit(self, node):
         value = self.visit(node.node)
-        return value
+        return -value
     
     
     @when(NumberNode)
@@ -229,9 +229,10 @@ class Interpreter:
 
     @when(FunctCallNode)
     def visit(self, node):
-        function_name = node.id
+        function_name = node.lex
+        func=self.context.get_type('Function')
         arguments = [self.visit(arg) for arg in node.args]
-        function = self.context.get_method(function_name)
+        function = func.get_method(function_name)
         return function(*arguments)
     @when(PropertyCallNode)
     def visit(self, node):
