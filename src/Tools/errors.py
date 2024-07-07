@@ -10,10 +10,10 @@ class errors:
         truncated_message = self.message + "..." if len(self.message) > 50 else self.message
         message = f"{truncated_message} | Error Type: {self.errorType}"
         if self.row != 0:
-            message.append(f" | Row: {self.row}")
+            message+=(f" | Row: {self.row}")
             if self.column != 0:
-                message.append(f", Column: {self.column}")
+                message+=(f", Column: {self.column}")
         elif self.column != 0:
-            message.append(f" | Column: {self.column}")
+            message+=(f" | Column: {self.column}")
             
         print(message)
