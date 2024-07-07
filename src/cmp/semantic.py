@@ -270,11 +270,12 @@ class Scope:
         return info
 
     def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
+        # locals = self.locals if index is None else itt.islice(self.locals, index)
+        locals = self.locals
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
     def find_variable1(self, vname, index=None):
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:

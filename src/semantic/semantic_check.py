@@ -29,7 +29,7 @@ def semantic_check(ast):
     print("CHECKING TYPES...")
     
     type_inf = type_inference(context, errs)
-    context, errs = type_inf.visit(ast, scope)
+    context, errs = type_inf.visit(ast)
 
     if errs:
         for error in errs:
