@@ -30,8 +30,10 @@ class typeDef:
         string_.set_parent(object)
         
         function_ = self.context.create_type('Function')
+        function_.set_parent(object)
         
         iterable_protocol = self.context.create_type('Iterable')
+        iterable_protocol.set_parent(object)
         
         range_ = self.context.create_type('Range')
         range_.set_parent(iterable_protocol)

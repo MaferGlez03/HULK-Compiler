@@ -27,7 +27,7 @@ class type_inference:
     def visit(self, node):
         if node.id.startswith('<error>'):
             return
-        scope = scope.create_child()
+        # scope = scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
 
         if (len(node.args) == 0) and (node.parents != None):
@@ -36,10 +36,10 @@ class type_inference:
                 try:
                     self.current_type.define_attribute(
                         arg, self.context.get_type(str(arg)))
-                    scope.define_variable(arg, self.context.get_type(str(arg)))
+                    node.scope.define_variable(arg, self.context.get_type(str(arg)))
                 except SemanticError as e:
                     self.current_type.define_attribute(arg, self.object_type)
-                    scope.define_variable(arg, self.object_type)
+                    node.scope.define_variable(arg, self.object_type)
         else:
             for arg in node.args:
                 add = True
@@ -49,14 +49,14 @@ class type_inference:
                     if add:
                         self.current_type.define_attribute(
                             arg, self.context.get_type(str(arg)))
-                    scope.define_variable(
+                    node.scope.define_variable(
                         arg.id, self.context.get_type(str(arg.id)))
                 except SemanticError as e:
                     if add:
                         self.current_type.define_attribute(
                             arg.id, self.object_type)
                     try:
-                        scope.define_variable(arg.id, self.object_type)
+                        node.scope.define_variable(arg.id, self.object_type)
                     except Exception as e:
                         pass
 
@@ -74,7 +74,7 @@ class type_inference:
     def visit(self, node):
         if node.id.startswith('<error>'):
             return
-        scope = scope.create_child()
+        # scope = scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
 
         if self.current_type.parent:
@@ -98,11 +98,11 @@ class type_inference:
         else:
             method = self.context.get_type("Function").get_method(node.id)
 
-        scope = scope.create_child()
+        # scope = scope.create_child()
 
         if node.args and method.param_types:
             for param, param_type in zip(node.args, method.param_types):
-                scope.define_variable(param.id, param_type)
+                node.scope.define_variable(param.id, param_type)
 
         return_type = self.visit(node.body)
         if node.body and not return_type.conforms_to(method.return_type) and method.return_type != self.object_type:
@@ -184,21 +184,24 @@ class type_inference:
     def visit(self, node):
         types = []
         cond_type = self.visit(node.cond)
+        if_type = self.visit(node.if_expr)
+        elif_type = self.visit(node.elif_expr)
+        else_type = self.visit(node.else_expr)
         if cond_type != self.context.get_type('Boolean'):
             self.errors.append(errors(0, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
-        if self.visit(node.if_expr) != ErrorType():
-            types.append(self.visit(node.if_expr))
-        if self.visit(node.elif_expr) != ErrorType():
-            types.append(self.visit(node.elif_expr))
-        if self.visit(node.else_expr) != ErrorType():
-            types.append(self.visit(node.else_expr))
+        if if_type == ErrorType():
+            types.append(if_type)
+        if elif_type == ErrorType():
+            types.append(elif_type)
+        if else_type == ErrorType():
+            types.append(else_type)
         if len(types) == 0:
             return self.object_type
         return types[0] if len(types) == 1 else self.context.lowest_common_ancestor(types)
 
     @visitor.when(WhileExpNode)
     def visit(self, node):
-        cond_type = self.visit(node.condition)
+        cond_type = self.visit(node.cond)
         if cond_type != self.context.get_type('Boolean'):
             self.errors.append(errors(0, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
         self.visit(node.expr)
@@ -254,8 +257,6 @@ class type_inference:
             return self.object_type
         var = node.scope.find_variable(str(node.lex))
         if var is None:
-            print(var)
-            print(type(var))
             self.errors.append(errors(0, 0, f'Variable {node.lex} not defined', "SEMANTIC ERROR"))
             return ErrorType()
 
@@ -499,8 +500,8 @@ class type_inference:
             self.errors.append(errors(0, 0, f'{iterable_type} does not conform to Iterable protocol', "SEMANTIC ERROR"))
             return ErrorType()
 
-        scope = scope.create_child()
-        scope.define_variable(node.id, iterable_type)
+        # scope = scope.create_child()
+        node.scope.define_variable(node.id, iterable_type)
 
         return_type = self.visit(node.expr)
         if return_type == ErrorType():
@@ -550,9 +551,9 @@ class type_inference:
 
     @visitor.when(AssignExpNode)
     def visit(self, node):
-        var_info = node.scope.find_variable(node.var.id)
+        var_info = node.scope.find_variable(node.var.lex)
         if var_info is None:
-            self.errors.append(errors(0, 0, f'Variable "{node.var.id}" not defined', "SEMANTIC ERROR"))
+            self.errors.append(errors(0, 0, f'var_info = {var_info} and {type(var_info)} Variable "{node.var.lex}" not defined', "SEMANTIC ERROR"))
             return ErrorType()
 
         expr_type = self.visit(node.expr)
