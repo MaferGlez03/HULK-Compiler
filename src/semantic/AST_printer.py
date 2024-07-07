@@ -15,8 +15,8 @@ class FormatVisitor(object):
 
     @visitor.when(FunctionDeclNode)
     def visit(self, node, tabs=0):
-        args = ', '.join(node.args)
-        ans = '\t' * tabs + f'\\__FunctionDeclNode: function {node.id}({args}) -> {node.returnType}'
+        args = ', '.join(arg.id for arg in node.args)
+        ans = '\t' * tabs + f'\\__FunctionDeclNode: function {node.id}({args}) -> {node.return_type}'
         body = self.visit(node.body, tabs + 1)
         return f'{ans}\n{body}'
 
@@ -60,35 +60,43 @@ class FormatVisitor(object):
 
     @visitor.when(AssignExpNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__AssignExpNode: {node.var} = '
+        ans = '\t' * tabs + f'\\__AssignExpNode:'
+        assigns = self.visit(node.var, tabs + 1)
         expr = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr}'
+        return f'{ans}\n{assigns}\n{expr}'
 
     @visitor.when(LetExpNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__LetExpNode: let {node.varAssignation} in '
+        ans = '\t' * tabs + f'\\__LetExpNode: let <assignations> in <expresions>'
+        assignations = '\n'.join(self.visit(Assignation, tabs + 1) for Assignation in node.varAssignation)
         expr = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr}'
+        return f'{ans}\n{assignations}\n{expr}'
 
     @visitor.when(WhileExpNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__WhileExpNode: while ({node.cond})'
+        ans = '\t' * tabs + f'\\__WhileExpNode: while (<cond>)'
+        cond = self.visit(node.cond, tabs + 1)
         expr = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr}'
+        return f'{ans}\n{cond}\n{expr}'
 
     @visitor.when(ForExpNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__ForExpNode: for ({node.id} in {node.expr})'
+        ans = '\t' * tabs + f'\\__ForExpNode: for (<cond> in <assign>) <body>'
+        cond = self.visit(node.id, tabs + 1)
+        assign = self.visit(node.expr, tabs + 1)
         body = self.visit(node.body, tabs + 1)
-        return f'{ans}\n{body}'
+        return f'{ans}\n{cond}\n{assign}\n{body}'
 
     @visitor.when(IfExpNode)
-    def visit(self, node, tabs=0):
-        if(node.elif_expr):
-            ans = '\t' * tabs + f'\\__IfExpNode: if ({node.cond}) elif {node.elif_expr} else {node.else_expr}'
-        else:
-            ans = '\t' * tabs + f'\\__IfExpNode: if ({node.cond}) else {node.else_expr}'
-        return f'{ans}'
+    def visit(self, node, tabs=0, isElif=False):
+        ans = '\t' * tabs + f'\\__IfExpNode: if (<cond>) <ifExpr> elif (<elifExpr>) else (<elseExpr>)'
+        cond = self.visit(node.cond, tabs + 1)
+        ifExpr = self.visit(node.if_expr, tabs + 1)
+        if isElif:
+            return f'{ans}\n{cond}\n{ifExpr}'
+        elifExpr = '\n'.join(self.visit(elif_, tabs + 1, True) for elif_ in node.elif_expr)
+        elseExpr = self.visit(node.else_expr, tabs + 1)
+        return f'{ans}\n{cond}\n{ifExpr}\n{elifExpr}\n{elseExpr}' if elifExpr != [] else f'{ans}\n{cond}\n{elseExpr}'
 
     @visitor.when(IndexExpNode)
     def visit(self, node, tabs=0):
@@ -231,45 +239,40 @@ class FormatVisitor(object):
 
     @visitor.when(VectorNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__VectorNode'
-        node = self.visit(node.lex, tabs + 1)
-        return f'{ans}\n{node}'
+        ans = '\t' * tabs + f'\\__VectorNode {node.lex}'
+        return f'{ans}'
 
     @visitor.when(VariableNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__VariableNode'
-        node = self.visit(node.lex, tabs + 1)
-        return f'{ans}\n{node}'
+        ans = '\t' * tabs + f'\\__VariableNode {node.lex}'
+        return f'{ans}'
 
     @visitor.when(NumberNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__NumberNode'
-        node = self.visit(node.lex, tabs + 1)
-        return f'{ans}\n{node}'
+        ans = '\t' * tabs + f'\\__NumberNode {node.lex}' 
+        return f'{ans} '
 
     @visitor.when(BooleanNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__BooleanNode'
-        node = self.visit(node.lex, tabs + 1)
-        return f'{ans}\n{node}'
+        ans = '\t' * tabs + f'\\__BooleanNode {node.lex}'
+        return f'{ans}'
 
     @visitor.when(StringNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__StringNode'
-        node = self.visit(node.lex, tabs + 1)
-        return f'{ans}\n{node}'
+        ans = '\t' * tabs + f'\\__StringNode {node.lex}'
+        return f'{ans}'
 
     @visitor.when(FunctCallNode)
     def visit(self, node, tabs=0):
         args = '\n'.join(self.visit(child, tabs + 1) for child in node.args)
-        ans = '\t' * tabs + f'\\__FunctCallNode {node.lex}({args})'
-        return f'{ans}'
+        ans = '\t' * tabs + f'\\__FunctCallNode {node.lex}(<args>)'
+        return f'{ans}\n{args}'
 
     @visitor.when(PropertyCallNode)
     def visit(self, node, tabs=0):
-        args = '\n'.join(self.visit(child, tabs + 1) for child in node.args)
-        ans = '\t' * tabs + f'\\__PropertyCallNode {node.lex}.{node.id}({args})'
-        return f'{ans}'
+        ans = '\t' * tabs + f'\\__PropertyCallNode {node.lex.lex}.{node.id}(<args>) *Empty line if it doesn’t have one.'
+        args = ''.join(self.visit(child, tabs + 1) for child in node.args)
+        return f'{ans}\n{args[1:]}'
 
     @visitor.when(AttributeCallNode)
     def visit(self, node, tabs=0):

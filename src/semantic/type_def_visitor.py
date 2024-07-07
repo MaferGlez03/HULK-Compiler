@@ -30,8 +30,10 @@ class typeDef:
         string_.set_parent(object)
         
         function_ = self.context.create_type('Function')
+        function_.set_parent(object)
         
         iterable_protocol = self.context.create_type('Iterable')
+        iterable_protocol.set_parent(object)
         
         range_ = self.context.create_type('Range')
         range_.set_parent(iterable_protocol)
@@ -53,7 +55,7 @@ class typeDef:
         function_.define_method('sin', ['angle'], [number], number)
         function_.define_method('cos', ['angle'], [number], number)
         function_.define_method('exp', ['value'], [number], number)
-        function_.define_method('log', ['value'], [number], number)
+        function_.define_method('log', ['base', 'value'], [number, number], number)
         function_.define_method('rand', [], [], number)
         function_.define_method('base', [], [], object)
         function_.define_method('parse', ['value'], [string_], number)

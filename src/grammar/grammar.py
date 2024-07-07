@@ -190,7 +190,7 @@ stringExpression %= stringExpression1, lambda h, s: s[1]
 stringExpression %= stringExpression1 + as__ + id__, lambda h, s: AsNode(s[1], s[3])
 
 elifStatement %= G.Epsilon, lambda h, s: []
-elifStatement %= elif__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement, lambda h, s: [s[3] + s[5]] + s[6]
+elifStatement %= elif__ + open_parenthesis__ + stringExpression2 + closed_parenthesis__ + expression + elifStatement, lambda h, s: [IfExpNode(s[3], s[5], None, None)] + s[6]
 
 variableAssign %= id__ + inicialization__ + expression, lambda h, s: [VariableDeclNode(s[1], None, s[3])]
 variableAssign %= id__ + type_asignator__ + id__ + inicialization__ + expression, lambda h, s: [VariableDeclNode(s[1], s[3], s[5])]
