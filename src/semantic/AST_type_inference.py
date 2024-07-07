@@ -292,7 +292,7 @@ class type_inference:
 
         accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(0, 0, f'miInvalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -304,7 +304,7 @@ class type_inference:
 
         accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(0, 0, f'mInvalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -316,7 +316,7 @@ class type_inference:
 
         accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(0, 0, f'DInvalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')

@@ -33,7 +33,6 @@ def semantic_check(ast):
 
     if errs:
         for error in errs:
-            print("hay error")
             errors.printError(error)
         return False
     return True

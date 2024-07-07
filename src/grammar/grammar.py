@@ -223,7 +223,7 @@ arithmeticExpression %= term, lambda h, s: s[1]
 arithmeticExpression %= arithmeticExpression + plus_operator__ + term, lambda h, s: PlusNode(s[1], s[3])
 arithmeticExpression %= arithmeticExpression + minus_operator__ + term, lambda h, s: MinusNode(s[1], s[3])
 
-term %= neg, lambda h, s: NegNode(s[1])
+term %= neg, lambda h, s: s[1]
 term %= term + division__ + neg, lambda h, s: DivisionNode(s[1], s[3])
 term %= term + module_operation__ + neg, lambda h, s: ModuleNode(s[1], s[3])
 term %= term + multiplication__ + neg, lambda h, s: MultiplicationNode(s[1], s[3])

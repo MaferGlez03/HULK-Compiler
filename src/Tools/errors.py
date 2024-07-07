@@ -7,7 +7,7 @@ class errors:
         pass
 
     def printError(self):
-        truncated_message = self.message[:50] + "..." if len(self.message) > 50 else self.message
+        truncated_message = self.message[:80] + "..." if len(self.message) > 50 else self.message
         message = f"{truncated_message} | Error Type: {self.errorType}"
         if self.row != 0:
             message.append(f" | Row: {self.row}")
