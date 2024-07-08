@@ -3,14 +3,26 @@ from grammar.H_ast import *
 from cmp.semantic import *
 from Semantic.type_def_visitor import *
 
+def Print(x):
+    print(x)
+    return x
+built_in_func = {
+    "print": lambda x: Print(*x),
+    # "sqrt": lambda x: math.sqrt(*x),
+    # "sin": lambda x: math.sin(*x),
+    # "cos": lambda x: math.cos(*x),
+    # "exp": lambda x: math.exp(*x),
+    # "log": lambda x: math.log(*reversed(x)),
+    # "rand": lambda: random.random(),
+    "parse": lambda x: float(*x),
+}
+
 class Interpreter:
     def __init__(self,ast):
         errors=[]
         type_collector = typeDef(errors)
         context, errors = type_collector.visit(ast)
-        self.current_scope = Scope()    
-        self.global_scope = self.current_scope
-        self.variables = {}
+        
 
         self.context = context
     
@@ -169,7 +181,10 @@ class Interpreter:
     
     @when(ExpBlockNode)
     def visit(self, node):
-        return self.visit(node.expLineList)
+        evaluation = None
+        for expression in node.expLineList:
+            evaluation = self.visit(expression)
+        return evaluation
     
     @when(IndexExpNode)
     def visit(self, node):
@@ -202,10 +217,10 @@ class Interpreter:
     @when(FunctionDeclNode)
     def visit(self, node):
         function_name = node.id
-        param_names = [param.lex for param in node.params]
-        param_types = [self.context.get_type(param.type) for param in node.params]
-        return_type = self.context.get_type(node.return_type)
-        function = self.context.define_method(function_name, param_names, param_types, return_type)
+        param_names = [param.id for param in node.args]
+        param_types = [self.context.get_type(str(param.type)) for param in node.args]
+        return_type = self.context.get_type(str(node.return_type))
+        function = self.context.create_function(function_name, param_names, param_types,None, return_type,node.body)
         return function
     @when(TypeDeclNode)
     def visit(self, node):
@@ -219,21 +234,27 @@ class Interpreter:
         typex = self.context.get_type(type_name)
         return typex
     @when(VariableDeclNode)
-    def visit(self, node):
+    def visit(self, node:VariableDeclNode):
         value = self.visit(node.expr)
-        var_name = (node.id,value)
-        print(node.type)
+        var_name = node.id
         var_type = self.context.get_type(str(node.type))
-        self.current_scope.define_variable(var_name, var_type)
+        var=node.scope.find_variable(var_name, var_type)
+        var.set_value(value)
     
 
     @when(FunctCallNode)
     def visit(self, node):
         function_name = node.lex
-        func=self.context.get_type('Function')
         arguments = [self.visit(arg) for arg in node.args]
-        function = func.get_method(function_name)
-        return function(*arguments)
+        if function_name in built_in_func:
+            return built_in_func[function_name](tuple(arguments))
+        function: Function = self.context.get_function(function_name)
+        body= function.body
+        scope=body.scope
+        for i, name in enumerate(function.param_names):
+            variable = scope.find_variable(name)
+            variable.set_value(arguments[i])
+        return self.visit(function.body)
     @when(PropertyCallNode)
     def visit(self, node):
         instance = self.visit(node.lex)                        #!Duda
@@ -251,15 +272,14 @@ class Interpreter:
     @when(VariableNode)
     def visit(self, node):
        var_name = node.lex
-       
-       variable = self.current_scope.find_variable1(str(var_name))
-       return variable.name[1]
+       variable = node.scope.find_variable(str(var_name))
+       return variable.value
 
     @when(AssignExpNode)
     def visit(self, node):
-        var_name = node.id
+        var_name = node.var
         var_value = self.visit(node.expr)
-        variable = self.current_scope.find_variable(var_name)
+        variable = self.current_scope.find_variable1(var_name)
         variable.value = var_value
     
     @when(NewExpNode)
@@ -272,12 +292,12 @@ class Interpreter:
     
     @when(LetExpNode)
     def visit(self, node):
-        new_scope = self.current_scope.create_child()
-        self.current_scope = new_scope
+        # new_scope = self.current_scope.create_child()
+        # self.current_scope = new_scope
         for decl in node.varAssignation:
             self.visit(decl)
         result = self.visit(node.expr)
-        self.current_scope = self.current_scope.parent
+        # self.current_scope = self.current_scope.parent
         return result
     @when(VectorIterableNode)
     def visit(self, node):
