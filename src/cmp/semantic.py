@@ -195,6 +195,7 @@ class IntType(Type):
 class Context:
     def __init__(self):
         self.types = {}
+        self.functions = {}
 
     def create_type(self, name:str):
         if name in self.types:
@@ -213,6 +214,17 @@ class Context:
 
     def __repr__(self):
         return str(self)
+    def create_function(self, name:str, param_names:"list[str]", param_types:list, return_type, current_node=None, body : list = []):
+        if name in self.types:
+            raise SemanticError(f'Function with the same name ({name}) already in context.')
+        function = self.functions[name] = Function(name, param_names, param_types, return_type, current_node=current_node, body=body)
+        return function
+    
+    def get_function(self, name:str):
+        try:
+            return self.functions[name]
+        except KeyError:
+            raise SemanticError(f'Function "{name}" is not defined.')
 
     def lca(self, a: Type, b: Type) -> Type:
             ancestors_a = set()
@@ -243,11 +255,25 @@ class Context:
                 break
         
         return common_ancestor
+class Function:
+    def __init__(self, name, param_names, return_type, param_types, current_node=None, body=None):
+        self.name = name
+        self.param_names = param_names
+        self.param_types = param_types
+        self.return_type = return_type
+        self.body  = body
+        self.current_node = current_node
+
+    def __eq__(self, other):
+        return other.name == self.name and other.return_type == self.return_type and other.param_types == self.param_types
     
 class VariableInfo:
-    def __init__(self, name, vtype):
+    def __init__(self, name, vtype, value=None):
         self.name = name
         self.type = vtype
+        self.value = value
+    def set_value(self,value=None):
+            self.value = value
 
 class Scope:
     def __init__(self, parent=None):
