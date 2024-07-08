@@ -161,12 +161,12 @@ protocolDefinition %= protocol__ + id__ + extends__ + id__ + open_curly_bracket_
 inlineMethodList %= G.Epsilon, lambda h, s: []
 inlineMethodList %= inlineMethod + inlineMethodList, lambda h, s: [s[1]] + s[2]
 
-inlineMethod %= id__ + open_parenthesis__ + parameterTypeList + closed_parenthesis__ + type_asignator__ + id__ + semicolon__, lambda h, s: FunctionDeclNode(s[1], s[3], None, s[6])
+inlineMethod %= id__ + open_parenthesis__ + parameterType + closed_parenthesis__ + type_asignator__ + id__ + semicolon__, lambda h, s: FunctionDeclNode(s[1], s[3], None, s[6])
 
 parameterType %= G.Epsilon, lambda h, s: []
 parameterType %= parameterTypeList, lambda h, s: s[1]
 
-parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: VariableDeclNode(s[1], s[3], None)
+parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: [VariableDeclNode(s[1], s[3], None)]
 parameterTypeList %= id__ + type_asignator__ + id__ + comma__ + parameterTypeList, lambda h, s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
 globalExpression %= expression + semicolon__ , lambda h, s: s[1]
