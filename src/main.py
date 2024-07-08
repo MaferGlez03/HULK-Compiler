@@ -19,12 +19,14 @@ try:
 except FileNotFoundError:
     errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
 # end region
+
 # region Lexer
 lexer = HULK_Lexer(G.EOF)
 
 tokens = lexer.tokenize(code)
 print(tokens)
 # end region
+
 # region Parser
 if os.path.getsize("./action.pkl") != 0:
     print("LOADING PARSING...")
@@ -38,8 +40,7 @@ if os.path.getsize("./action.pkl") != 0:
             action, tag = value
 
             if action == ShiftReduceParser.REDUCE:
-                tag = list(filter(lambda x: str(x) ==
-                           str(tag), productions))[0]
+                tag = list(filter(lambda x: str(x) == str(tag), productions))[0]
 
             action_table[state, G[str(symbol)]] = action, tag
 
@@ -59,6 +60,7 @@ else:
 derivation, operations = parser(tokens, get_shift_reduce=True) 
 
 # end region
+
 # region Semantic Check
 
 ast = evaluate_reverse_parse(derivation, operations, tokens)
@@ -68,6 +70,7 @@ print(formatter.visit(ast))
 
 semantic_check(ast)
 # end region
+
 # region Interpreter
 interpreter = Interpreter(ast)
 result = interpreter.visit(ast)

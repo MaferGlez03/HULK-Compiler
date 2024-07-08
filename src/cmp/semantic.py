@@ -294,6 +294,12 @@ class Scope:
         info = VariableInfo(vname, vtype)
         self.locals.append(info)
         return info
+    
+    def replace_variable(self, vname, vtype, vreplace):
+        info = VariableInfo(vname, vtype)
+        self.locals.remove(vreplace)
+        self.locals.append(info)
+        return info
 
     def find_variable(self, vname, index=None):
         # locals = self.locals if index is None else itt.islice(self.locals, index)
@@ -302,8 +308,10 @@ class Scope:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
             return self.parent.find_variable(vname, self.index) if self.parent is not None else None
+
     def find_variable1(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
+        # locals = self.locals if index is None else itt.islice(self.locals, index)
+        locals = self.locals 
         try:
             return next(x for x in locals if x.name[0] == vname)
         except StopIteration:

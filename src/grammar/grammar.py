@@ -166,7 +166,7 @@ inlineMethod %= id__ + open_parenthesis__ + parameterType + closed_parenthesis__
 parameterType %= G.Epsilon, lambda h, s: []
 parameterType %= parameterTypeList, lambda h, s: s[1]
 
-parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: VariableDeclNode(s[1], s[3], None)
+parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: [VariableDeclNode(s[1], s[3], None)]
 parameterTypeList %= id__ + type_asignator__ + id__ + comma__ + parameterTypeList, lambda h, s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
 globalExpression %= expression + semicolon__ , lambda h, s: s[1]

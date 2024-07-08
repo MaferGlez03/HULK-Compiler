@@ -30,35 +30,33 @@ class type_inference:
         # scope = scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
 
-        if (len(node.args) == 0) and (node.parents != None):
-            node.args = self.context.get_type(str(node.parents)).attributes
-            for arg in node.args:
-                try:
-                    self.current_type.define_attribute(
-                        arg, self.context.get_type(str(arg)))
-                    node.scope.define_variable(arg, self.context.get_type(str(arg)))
-                except SemanticError as e:
-                    self.current_type.define_attribute(arg, self.object_type)
-                    node.scope.define_variable(arg, self.object_type)
-        else:
-            for arg in node.args:
-                add = True
-                if arg.id in [at for at in self.current_type.attributes]:
-                    add = False
-                try:
-                    if add:
+        if node.args != None:
+            if (len(node.args) == 0) and (node.parents != None):
+                node.args = self.context.get_type(str(node.parents)).attributes
+                for arg in node.args:
+                    try:
                         self.current_type.define_attribute(
                             arg, self.context.get_type(str(arg)))
-                    node.scope.define_variable(
-                        arg.id, self.context.get_type(str(arg.id)))
-                except SemanticError as e:
-                    if add:
-                        self.current_type.define_attribute(
-                            arg.id, self.object_type)
+                        node.scope.define_variable(arg, self.context.get_type(str(arg)))
+                    except SemanticError as e:
+                        self.current_type.define_attribute(arg, self.object_type)
+                        node.scope.define_variable(arg, self.object_type)
+            else:
+                for arg in node.args:
+                    add = True
+                    if arg.id in [at.name for at in self.current_type.attributes]:
+                        add = False
                     try:
-                        node.scope.define_variable(arg.id, self.object_type)
-                    except Exception as e:
-                        pass
+                        if add:
+                            self.current_type.define_attribute(arg, self.context.get_type(str(arg)))
+                        node.scope.define_variable(arg.id, self.context.get_type(str(arg.id)))
+                    except SemanticError as e:
+                        if add:
+                            self.current_type.define_attribute(arg.id, self.object_type)
+                        try:
+                            node.scope.define_variable(arg.id, self.object_type)
+                        except Exception as e:
+                            pass
 
         if self.current_type.parent:
             parent_type = self.current_type.parent
@@ -83,7 +81,6 @@ class type_inference:
                 self.errors.append(errors(0, 0, f'Invalid parent type for protocol "{node.id}"', "SEMANTIC ERROR"))
 
         for method in node.methods:
-            self.current_type.define_method(method.id, [], [], self.context.get_type(str(method.return_type)))
             self.visit(method)
 
         self.current_type = None
@@ -135,7 +132,11 @@ class type_inference:
         if not expr_type.conforms_to(var_type) and not self.prototipes(expr_type, var_type):
             self.errors.append(errors(0, 0, f'Incompatible variable type, variable "{node.id}" with type "{expr_type}"', "SEMANTIC ERROR"))
         var_type = expr_type
-        node.scope.define_variable(node.id, var_type)
+        aux = node.scope.find_variable(node.id)
+        if aux == None or aux.type.name == 'None':
+            node.scope.replace_variable(node.id, var_type, aux)
+        else:
+            node.scope.define_variable(node.id, var_type)
 
     @visitor.when(ExpBlockNode)
     def visit(self, node):
@@ -160,7 +161,7 @@ class type_inference:
             return ErrorType()
 
         for arg_type, param_type in zip(args_types, function.param_types):
-            if not arg_type.conforms_to(param_type):
+            if not arg_type.conforms_to(param_type) and arg_type.name != 'None':
                 self.errors.append(errors(0, 0, f'Incompatible argument type {arg_type} for parameter type {param_type}', "SEMANTIC ERROR"))
                 return ErrorType()
 
@@ -281,7 +282,8 @@ class type_inference:
     def visit(self, node):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -293,7 +295,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -305,7 +307,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -317,7 +319,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -329,7 +331,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -341,7 +343,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -354,7 +356,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -366,7 +368,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -378,7 +380,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -390,7 +392,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -402,7 +404,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -414,7 +416,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        accepted = [self.context.get_type('Number'), self.context.get_type('Object')]
+        accepted = [self.context.get_type('Number'), self.context.get_type('None')]
         if left_type not in accepted or right_type not in accepted:
             self.errors.append(errors(0, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
@@ -514,7 +516,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        concatenable = [self.context.get_type('String'), self.context.get_type('Number')]
+        concatenable = [self.context.get_type('String'), self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in concatenable or right_type not in concatenable:
 
             self.errors.append(errors(0, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
@@ -527,7 +529,7 @@ class type_inference:
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
 
-        concatenable = [self.context.get_type('String'), self.context.get_type('Number')]
+        concatenable = [self.context.get_type('String'), self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in concatenable or right_type not in concatenable:
 
             self.errors.append(errors(0, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
@@ -551,10 +553,17 @@ class type_inference:
 
     @visitor.when(AssignExpNode)
     def visit(self, node):
-        var_info = node.scope.find_variable(node.var.lex)
+        try:
+            var_info = node.scope.find_variable(node.var.id)
+        except AttributeError:
+            var_info = node.scope.find_variable(node.var.lex)
         if var_info is None:
-            self.errors.append(errors(0, 0, f'var_info = {var_info} and {type(var_info)} Variable "{node.var.lex}" not defined', "SEMANTIC ERROR"))
-            return ErrorType()
+            try:
+                self.errors.append(errors(0, 0, f'Variable "{node.var.id}" not defined on scope', "SEMANTIC ERROR"))
+                return ErrorType()
+            except AttributeError:
+                self.errors.append(errors(0, 0, f'Variable "{node.var.lex}" not defined on scope', "SEMANTIC ERROR"))
+                return ErrorType()
 
         expr_type = self.visit(node.expr)
         if not expr_type.conforms_to(var_info.type):
