@@ -58,17 +58,23 @@ else:
     PKL_Files.save_object(parser.goto, "goto")
 
 derivation, operations = parser(tokens, get_shift_reduce=True) 
+try: 
+    derivation.printError()
+    sys.exit()
+except:
+    pass
 
 # end region
 
-# region Semantic Check
+# region Semantic Chzeck
 
 ast = evaluate_reverse_parse(derivation, operations, tokens)
 
 formatter = FormatVisitor()
 print(formatter.visit(ast))
 
-semantic_check(ast)
+if not semantic_check(ast):
+    sys.exit()
 # end region
 
 # region Interpreter

@@ -1,1 +1,14 @@
 
+type Point(x,y) {
+    x = x;
+    y = y;
+
+    getX() => self.x;
+    getY() => self.y;
+
+    setX(x) => self.x := x;
+    setY(y) => self.y := y;
+}
+
+let pt = new Point(1, 2) in 
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
