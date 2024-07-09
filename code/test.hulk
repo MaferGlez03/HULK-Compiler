@@ -1,9 +1,9 @@
 
-<<<<<<< HEAD
-   
-     let x=2 in print (x)
+{
+let squares = [x^2 || x in range(1,10)]in print(x);
+
+print("Mi compilador funciona");}
    
 
  
-=======
->>>>>>> bceee74a818a0d438748b7be72889cc644359921
+

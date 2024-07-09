@@ -21,6 +21,7 @@ except FileNotFoundError:
 # end region
 
 # region Lexer
+print('===========================BUILDING LEXER...===================================')
 lexer = HULK_Lexer(G.EOF)
 
 tokens = lexer.tokenize(code)
@@ -29,7 +30,7 @@ print(tokens)
 
 # region Parser
 if os.path.getsize("./action.pkl") != 0:
-    print("LOADING PARSING...")
+    print("=======================LOADING PARSING...==========================")
     action_table = {}
     goto_table = {}
     action = PKL_Files.load_object("action")
@@ -49,7 +50,7 @@ if os.path.getsize("./action.pkl") != 0:
     for key, value in stored_goto.items():
             state, symbol = key
             goto_table[state, G[str(symbol)]] = value
-    print("PARSER LOADED")
+    print("===========================PARSER LOADED===========================")
     parser = LR1Parser(G, action_table, goto_table)
 else:
     print("BUILDING PARSER")
@@ -74,5 +75,5 @@ semantic_check(ast)
 # region Interpreter
 interpreter = Interpreter(ast)
 result = interpreter.visit(ast)
-print(result)
+# print(result)
 # end region

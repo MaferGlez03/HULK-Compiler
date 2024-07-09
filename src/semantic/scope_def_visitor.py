@@ -1,4 +1,4 @@
-from cmp.semantic import Scope, SemanticError, AutoType,AutoRefere
+from cmp.semantic import Scope, SemanticError, AutoType
 import cmp.visitor as visitor
 from grammar.H_ast import *
 from Tools.errors import *

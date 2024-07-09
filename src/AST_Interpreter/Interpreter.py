@@ -15,6 +15,7 @@ def range_(min, max):
         iterable.append(i)
     return iterable
 built_in_func = {
+    "range":lambda x:range_(int(x[0]),int(x[0])),
     "print": lambda x: Print(*x),
     "sqrt": lambda x: math.sqrt(*x),
     "sin": lambda x: math.sin(*x),
@@ -173,7 +174,13 @@ class Interpreter:
     
     @when(NumberNode)
     def visit(self, node):
-        return int(node.lex)
+        number =node.lex
+        if number=="PI":
+            return math.pi
+        elif number =="E":
+            return math.e
+        else:
+            return float(node.lex)
     
     @when(StringNode)
     def visit(self, node):
@@ -263,7 +270,7 @@ class Interpreter:
         arguments = [self.visit(arg) for arg in node.args]
         if function_name in built_in_func:
             return built_in_func[function_name](tuple(arguments))
-        old_scope = copy.deepcopy(function.body.scope.parent.local_vars)
+        old_scope = copy.deepcopy(function.body.scope.parent.locals)
         function: Function = self.context.get_function(function_name)
         body= function.body
         scope=body.scope
@@ -271,7 +278,7 @@ class Interpreter:
             variable = scope.find_variable(name)
             variable.set_value(arguments[i])
         result= self.visit(function.body)
-        function.body.scope.parent.local_vars = old_scope
+        function.body.scope.parent.locals = old_scope
         return result
     @when(PropertyCallNode)
     def visit(self, node):
