@@ -10,6 +10,7 @@ from Semantic.semantic_check import *
 from AST_Interpreter.Interpreter import *
 
 # region Code
+
 file_path = "code/test.hulk"
 code = ""
 try:
@@ -17,20 +18,24 @@ try:
         code = file.read().decode('utf-8')
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
-    errors(node.line, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+    errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+    
 # end region
 
 # region Lexer
-print('===========================BUILDING LEXER...===================================')
+
+print('===========================BUILDING LEXER...===========================')
 lexer = HULK_Lexer(G.EOF)
 
 tokens = lexer.tokenize(code)
 print(tokens)
+
 # end region
 
 # region Parser
+
 if os.path.getsize("./action.pkl") != 0:
-    print("=======================LOADING PARSING...==========================")
+    print("===========================LOADING PARSING...===========================")
     action_table = {}
     goto_table = {}
     action = PKL_Files.load_object("action")
@@ -67,7 +72,7 @@ except Exception:
 
 # end region
 
-# region Semantic Chzeck
+# region Semantic Check
 
 ast = evaluate_reverse_parse(derivation, operations, tokens)
 
@@ -76,10 +81,12 @@ print(formatter.visit(ast))
 
 if not semantic_check(ast):
     sys.exit()
+    
 # end region
 
 # region Interpreter
+
 interpreter = Interpreter(ast)
 result = interpreter.visit(ast)
-# print(result)
+
 # end region

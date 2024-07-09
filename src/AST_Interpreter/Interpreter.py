@@ -15,7 +15,7 @@ def range_(min, max):
         iterable.append(i)
     return iterable
 built_in_func = {
-    "range":lambda x:range_(int(x[0]),int(x[0])),
+    "range":lambda x:range_(int(x[0]),int(x[1])),
     "print": lambda x: Print(*x),
     "sqrt": lambda x: math.sqrt(*x),
     "sin": lambda x: math.sin(*x),
@@ -303,7 +303,7 @@ class Interpreter:
 
     @when(AssignExpNode)
     def visit(self, node):
-        var_name = node.var
+        var_name = node.var.lex
         var_value = self.visit(node.expr)
         variable = node.scope.find_variable(str(var_name))
         variable.set_value(var_value)
