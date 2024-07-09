@@ -164,9 +164,10 @@ class VoidType(Type):
         return isinstance(other, VoidType)
     
 class VectorType(Type):
-    def __init__(self, element_type):
+    def __init__(self, element_type, iterable):
         super().__init__('Vector')
         self.element_type = element_type
+        self.set_parent(iterable)
 
     def get_element_type(self):
         return self.element_type
@@ -207,7 +208,15 @@ class Context:
         try:
             return self.types[name]
         except KeyError:
-            raise SemanticError(f'Type "{name}" is not defined.')
+            attributes = []
+            for type in self.types:
+                for element in self.types[type].attributes:
+                    attributes.append(element)
+            try:
+                diccionario = {str(element): element for element in attributes}
+                return diccionario[name]
+            except KeyError:
+                raise SemanticError(f'Type "{name}" is not defined.')
 
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
@@ -297,8 +306,15 @@ class Scope:
     
     def replace_variable(self, vname, vtype, vreplace):
         info = VariableInfo(vname, vtype)
-        self.locals.remove(vreplace)
-        self.locals.append(info)
+        try:
+            self.locals.remove(vreplace)
+            self.locals.append(info)
+            if self.parent != None:
+                self.parent.replace_variable(vname, vtype, vreplace)
+        except:
+            if self.parent != None:
+                self.parent.replace_variable(vname, vtype, vreplace)
+            
         return info
 
     def find_variable(self, vname, index=None):

@@ -34,6 +34,7 @@ class typeDef:
         
         iterable_protocol = self.context.create_type('Iterable')
         iterable_protocol.set_parent(object)
+        iterable_protocol.define_attribute('element_type', object)
         
         range_ = self.context.create_type('Range')
         range_.set_parent(iterable_protocol)

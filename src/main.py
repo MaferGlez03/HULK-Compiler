@@ -17,7 +17,7 @@ try:
         code = file.read().decode('utf-8')
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
-    errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+    errors(node.line, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
 # end region
 
 # region Lexer
@@ -59,17 +59,23 @@ else:
     PKL_Files.save_object(parser.goto, "goto")
 
 derivation, operations = parser(tokens, get_shift_reduce=True) 
+try: 
+    derivation.printError()
+    sys.exit()
+except Exception:
+    pass
 
 # end region
 
-# region Semantic Check
+# region Semantic Chzeck
 
 ast = evaluate_reverse_parse(derivation, operations, tokens)
 
 formatter = FormatVisitor()
 print(formatter.visit(ast))
 
-semantic_check(ast)
+if not semantic_check(ast):
+    sys.exit()
 # end region
 
 # region Interpreter
