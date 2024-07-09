@@ -1,6 +1,10 @@
 import cmp.visitor as visitor
 
 class Node:
+    def __init__(self):
+        line=0
+        scope =None
+        pass
     def evaluate(self):
         raise NotImplementedError()
 

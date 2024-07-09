@@ -2,18 +2,26 @@ from cmp.visitor import on, when
 from grammar.H_ast import *
 from cmp.semantic import *
 from Semantic.type_def_visitor import *
+import copy
+import math
+import random
 
 def Print(x):
     print(x)
     return x
+def range_(min, max):
+    iterable = []
+    for i in range(min, max):
+        iterable.append(i)
+    return iterable
 built_in_func = {
     "print": lambda x: Print(*x),
-    # "sqrt": lambda x: math.sqrt(*x),
-    # "sin": lambda x: math.sin(*x),
-    # "cos": lambda x: math.cos(*x),
-    # "exp": lambda x: math.exp(*x),
-    # "log": lambda x: math.log(*reversed(x)),
-    # "rand": lambda: random.random(),
+    "sqrt": lambda x: math.sqrt(*x),
+    "sin": lambda x: math.sin(*x),
+    "cos": lambda x: math.cos(*x),
+    "exp": lambda x: math.exp(*x),
+    "log": lambda x: math.log(*reversed(x)),
+    "rand": lambda: random.random(),
     "parse": lambda x: float(*x),
 }
 
@@ -204,14 +212,21 @@ class Interpreter:
     
     @when(WhileExpNode)
     def visit(self, node):
+        result= None
         while self.visit(node.cond):
-            self.visit(node.expr)
+            result=self.visit(node.expr)
+        return result
+            
     
     @when(ForExpNode)
     def visit(self, node):
+        result=None
+        iterator = node.scope.find_variable(node.id)
         iterable = self.visit(node.expr)
         for value in iterable:
-            self.visit(node.body)
+            iterator.set_value(value)
+            result=self.visit(node.body)
+        return result
         
     # region declaration
     @when(FunctionDeclNode)
@@ -248,13 +263,16 @@ class Interpreter:
         arguments = [self.visit(arg) for arg in node.args]
         if function_name in built_in_func:
             return built_in_func[function_name](tuple(arguments))
+        old_scope = copy.deepcopy(function.body.scope.parent.local_vars)
         function: Function = self.context.get_function(function_name)
         body= function.body
         scope=body.scope
         for i, name in enumerate(function.param_names):
             variable = scope.find_variable(name)
             variable.set_value(arguments[i])
-        return self.visit(function.body)
+        result= self.visit(function.body)
+        function.body.scope.parent.local_vars = old_scope
+        return result
     @when(PropertyCallNode)
     def visit(self, node):
         instance = self.visit(node.lex)                        #!Duda
@@ -263,7 +281,8 @@ class Interpreter:
         return property_value
     @when(AttributeCallNode)
     def visit(self, node):
-        instance = self.visit(node.lex)
+        #value= node.scope.find_variable(node.id).value
+        instance = self.context.get_type(str(node.lex))
         attribute_name = node.id
         attribute_value = instance.get_attribute(attribute_name)
         return attribute_value
@@ -279,8 +298,8 @@ class Interpreter:
     def visit(self, node):
         var_name = node.var
         var_value = self.visit(node.expr)
-        variable = self.current_scope.find_variable1(var_name)
-        variable.value = var_value
+        variable = node.scope.find_variable(str(var_name))
+        variable.set_value(var_value)
     
     @when(NewExpNode)
     def visit(self, node):
@@ -292,17 +311,22 @@ class Interpreter:
     
     @when(LetExpNode)
     def visit(self, node):
-        # new_scope = self.current_scope.create_child()
-        # self.current_scope = new_scope
         for decl in node.varAssignation:
             self.visit(decl)
         result = self.visit(node.expr)
-        # self.current_scope = self.current_scope.parent
         return result
     @when(VectorIterableNode)
     def visit(self, node):
-        # Implementar la lógica para vector iterable
-        pass
+        iterable=self.visit(node.iterable)
+        result=[]
+        for i in iterable:
+            node.expr.scope.define_variable(node.id, AutoType())
+            node.exp.scope.find_variable(
+                node.id
+            ).set_value(i)
+            result.append(self.visit(node.expr))
+        return result
+
 
     
    

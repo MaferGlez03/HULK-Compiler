@@ -1,11 +1,6 @@
 
-   function operate(x, y) {
-    print(x + y);
-    print(x - y);
-    print(x * y);
-    print(x / y);
-    }
-    
-   { operate(2,3);}
+   
+     let x=2 in print (x)
+   
 
  

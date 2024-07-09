@@ -1,4 +1,4 @@
-from cmp.semantic import Scope, SemanticError, AutoType
+from cmp.semantic import Scope, SemanticError, AutoType,AutoRefere
 import cmp.visitor as visitor
 from grammar.H_ast import *
 from Tools.errors import *
@@ -79,7 +79,7 @@ class scopeDef:
     def visit(self, node: VectorIterableNode, scope: Scope):
         node.scope = scope
         comprehension_scope = scope.create_child()
-        comprehension_scope.define_variable(node.id, None)
+        scope.define_variable(node.id, AutoType())
         self.visit(node.expr, comprehension_scope)
         self.visit(node.iterable, scope.create_child())
 
@@ -252,7 +252,8 @@ class scopeDef:
             except SemanticError as error:
                 if item.type != None:
                     self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
-                #!ELSE???
+                else:
+                    func_scope.define_variable(item.lex, AutoType())
         self.visit(node.body, func_scope)
 
     @visitor.when(ProtocolDeclNode)
