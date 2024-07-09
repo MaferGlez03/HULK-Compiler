@@ -4,12 +4,16 @@ class ShiftReduceParser:
     REDUCE = 'REDUCE'
     OK = 'OK'
 
-    def __init__(self, G, verbose=False):
+    def __init__(self, G, action= None, goto = None, verbose=False):
         self.G = G
         self.verbose = verbose
-        self.action = {}
-        self.goto = {}
-        self._build_parsing_table()
+        if action is None or goto is None:
+            self.action = {}
+            self.goto = {}
+            self._build_parsing_table()
+        else:
+            self.action = action
+            self.goto = goto
 
     def _build_parsing_table(self):
         raise NotImplementedError()

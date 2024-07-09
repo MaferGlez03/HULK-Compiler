@@ -1,4 +1,3 @@
-import pickle
 from Lexer.lexer import *
 import os
 from grammar.grammar import *
@@ -10,8 +9,7 @@ from Tools.PKL_Files import *
 from Semantic.semantic_check import *
 from AST_Interpreter.Interpreter import *
 
-
-
+# region Code
 file_path = "code/test.hulk"
 code = ""
 try:
@@ -20,15 +18,50 @@ try:
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
     errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+# end region
 
-
+# region Lexer
 lexer = HULK_Lexer(G.EOF)
 
 tokens = lexer.tokenize(code)
 print(tokens)
+# end region
 
-parser = LR1Parser(G)
-derivation, operations = parser(tokens, get_shift_reduce=True)
+# region Parser
+if os.path.getsize("./action.pkl") != 0:
+    print("LOADING PARSING...")
+    action_table = {}
+    goto_table = {}
+    action = PKL_Files.load_object("action")
+    productions = G.Productions
+
+    for key, value in action.items():
+            state, symbol = key
+            action, tag = value
+
+            if action == ShiftReduceParser.REDUCE:
+                tag = list(filter(lambda x: str(x) == str(tag), productions))[0]
+
+            action_table[state, G[str(symbol)]] = action, tag
+
+    stored_goto = PKL_Files.load_object("goto")
+
+    for key, value in stored_goto.items():
+            state, symbol = key
+            goto_table[state, G[str(symbol)]] = value
+    print("PARSER LOADED")
+    parser = LR1Parser(G, action_table, goto_table)
+else:
+    print("BUILDING PARSER")
+    parser = LR1Parser(G)
+    PKL_Files.save_object(parser.action, "action")
+    PKL_Files.save_object(parser.goto, "goto")
+
+derivation, operations = parser(tokens, get_shift_reduce=True) 
+
+# end region
+
+# region Semantic Check
 
 ast = evaluate_reverse_parse(derivation, operations, tokens)
 
@@ -36,7 +69,10 @@ formatter = FormatVisitor()
 print(formatter.visit(ast))
 
 semantic_check(ast)
+# end region
 
+# region Interpreter
 interpreter = Interpreter(ast)
-result= interpreter.visit(ast)
-print (result)
+result = interpreter.visit(ast)
+print(result)
+# end region
