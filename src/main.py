@@ -17,7 +17,7 @@ try:
         code = file.read().decode('utf-8')
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
-    errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+    errors(node.line, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
 # end region
 
 # region Lexer
@@ -61,7 +61,7 @@ derivation, operations = parser(tokens, get_shift_reduce=True)
 try: 
     derivation.printError()
     sys.exit()
-except:
+except Exception:
     pass
 
 # end region

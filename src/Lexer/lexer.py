@@ -59,6 +59,10 @@ class HULK_Lexer:
 
             if symbol not in self.automaton.transitions.get(actualState, {}):
                 if last_token_recognized is not None:
+                    if last_token_recognized == 'UNTERMINATED_STRING':
+                        error = errors(row, column - len(actual_lexeme) + 1, 'Unterminated string', 'Lexical Analysis Error')
+                        error.printError()
+                        sys.exit()
                     code_tokenized.append(Token(last_lexeme_recognized, last_token_recognized, row, column - len(actual_lexeme) + 1))
                 else:
                     error = errors(row, column, 'Unrecognized symbol', 'Lexical Analysis Error')

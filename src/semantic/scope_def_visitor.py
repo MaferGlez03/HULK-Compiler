@@ -1,4 +1,4 @@
-from cmp.semantic import Scope, SemanticError, AutoType,AutoRefere
+from cmp.semantic import Scope, SemanticError, AutoType
 import cmp.visitor as visitor
 from grammar.H_ast import *
 from Tools.errors import *
@@ -251,7 +251,7 @@ class scopeDef:
                 func_scope.define_variable(item, self.context.get_type(str(item.type)))
             except SemanticError as error:
                 if item.type != None:
-                    self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
+                    self.errors.append(errors(node.line, 0, str(error), 'Semantic Error'))
                 else:
                     func_scope.define_variable(item.lex, AutoType())
         self.visit(node.body, func_scope)
@@ -289,7 +289,7 @@ class scopeDef:
         except SemanticError as error:
             if node.type != None:
                 # ? set row and column
-                self.errors.append(errors(0, 0, str(error), 'Semantic Error'))
+                self.errors.append(errors(node.line, 0, str(error), 'Semantic Error'))
             var_type = self.context.get_type('Object')
 
         scope.define_variable(node.id, var_type)

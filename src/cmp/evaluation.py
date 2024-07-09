@@ -31,7 +31,7 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
                 value =rule(None, None)
                 if hasattr(value,'line'):
                     value.line=current_line
-                stack.append()
+                stack.append(value)
         else:
             raise Exception('Invalid action!!!')
 
