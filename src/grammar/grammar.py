@@ -169,13 +169,14 @@ parameterType %= parameterTypeList, lambda h, s: s[1]
 parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: [VariableDeclNode(s[1], s[3], None)]
 parameterTypeList %= id__ + type_asignator__ + id__ + comma__ + parameterTypeList, lambda h, s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
+globalExpression %= G.Epsilon, lambda h, s: []
 globalExpression %= expression + semicolon__ , lambda h, s: s[1]
 globalExpression %= expressionBlock, lambda h, s: s[1]
 
 expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__, lambda h, s: ExpBlockNode(s[2])
 # expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__ + semicolon__
 
-expressionLineList %= expression + semicolon__, lambda h, s: [s[1]]
+expressionLineList %= G.Epsilon, lambda h, s: []
 expressionLineList %= expression + semicolon__ + expressionLineList, lambda h, s: [s[1]] + s[3]
 
 expression %= stringExpression, lambda h, s: s[1]
