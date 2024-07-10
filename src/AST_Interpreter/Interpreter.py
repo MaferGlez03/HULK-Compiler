@@ -328,7 +328,7 @@ class Interpreter:
         result=[]
         for i in iterable:
             node.expr.scope.define_variable(node.id, AutoType())
-            node.exp.scope.find_variable(
+            node.expr.scope.find_variable(
                 node.id
             ).set_value(i)
             result.append(self.visit(node.expr))
