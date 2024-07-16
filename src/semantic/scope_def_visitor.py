@@ -8,7 +8,7 @@ class scopeDef:
     def __init__(self, context, current_Type, errors=[]):
         self.context = context
         self.current_type = None
-        self.Errors = errors
+        self.errors = Errors
         pass
 
     @visitor.on('node')
@@ -57,7 +57,7 @@ class scopeDef:
     @visitor.when(ForExpNode)
     def visit(self, node: ForExpNode, scope: Scope):
         forScope = node.scope = scope.create_child()
-        forScope.define_variable(id, AutoType())
+        forScope.define_variable(node.id, AutoType())
         self.visit(node.expr, forScope)
         self.visit(node.body, forScope.create_child())
 
@@ -248,12 +248,14 @@ class scopeDef:
 
         for item in node.args:
             try:
-                func_scope.define_variable(item, self.context.get_type(str(item.type)))
+                if item.type == None:
+                    raise SemanticError()
+                func_scope.define_variable(item.id, self.context.get_type(str(item.type)))
             except SemanticError as error:
                 if item.type != None:
-                    self.Errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
+                    self.errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
                 else:
-                    func_scope.define_variable(item.lex, AutoType())
+                    func_scope.define_variable(item.id, AutoType())
         self.visit(node.body, func_scope)
 
     @visitor.when(ProtocolDeclNode)
@@ -270,14 +272,12 @@ class scopeDef:
         node.scope = scope
         type_scope = scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
-        if node.args != None:
-            for param in node.args:
+        
+        for param in node.args:
                 try:
-                    param_type = self.context.get_type(str(param))
-                    if param_type == None or param_type is None:
-                        node.scope.define_variable(param.id, AutoType())
-                    else:
-                        node.scope.define_variable(param.id, )
+                    if param.type!=None:
+                        node.scope.define_variable(param.id, self.context.get_type(str(param.type)))
+                    else: raise SemanticError()
                 except SemanticError as e:
                     node.scope.define_variable(param.id, AutoType())
         for item in node.attributes:
@@ -294,7 +294,8 @@ class scopeDef:
             if node.type != None:
                 # ? set row and column
                 self.Errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
-            var_type = self.context.get_type('Object')
-
+            var_type = AutoType()
+        if var_type == None:
+            var_type =AutoType()
         scope.define_variable(node.id, var_type)
         self.visit(node.expr, var_scope)

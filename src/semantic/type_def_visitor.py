@@ -1,12 +1,12 @@
 import cmp.visitor as visitor 
-from cmp.semantic import Context, SemanticError, AutoType
+from cmp.semantic import Context,SemanticError
 from grammar.H_ast import *
 from Tools.Errors import *
 
 class typeDef:
-    def __init__(self,errors=[]):
+    def __init__(self, Errors=[]):
         self.context= None
-        self.error = errors
+        self.errors = Errors
         pass
     
     @visitor.on('node')
@@ -91,14 +91,11 @@ class typeDef:
         try:
             self.context.create_type(node.id)
         except SemanticError as e:
-            self.error.append(Errors(node.line, 0, str(e), 'Semantic Error'))
+            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))#? set row and column
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
         try:
             self.context.create_type(node.id)
         except SemanticError as e:
-            self.error.append(Errors(node.line, 0, str(e), 'Semantic Error'))
-
-        
-        
+            self.errors.append(Errors(0,0,str(e),'Semantic Error'))#? set row and column
