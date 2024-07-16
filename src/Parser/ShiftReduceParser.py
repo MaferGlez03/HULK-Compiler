@@ -1,4 +1,4 @@
-from Tools.errors import *
+from Tools.Errors import *
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
     REDUCE = 'REDUCE'
@@ -31,7 +31,7 @@ class ShiftReduceParser:
             #if self.verbose: print(stack, '<---||--->', w[cursor:])
            
             if(state,lookahead) not in self.action:
-                return (errors(current.row,current.column,f'Unexpected token {current.lex}','Parsing Error'),None)
+                return (Errors(current.row,current.column,f'Unexpected token {current.lex}','Parsing Error'),None)
             
             
             action, tag = self.action[state, lookahead]

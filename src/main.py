@@ -4,7 +4,7 @@ from grammar.grammar import *
 from Parser.LR1_Parser import *
 from cmp.evaluation import *
 from Semantic.AST_printer import *
-from Tools.errors import *
+from Tools.Errors import *
 from Tools.PKL_Files import *
 from Semantic.semantic_check import *
 from AST_Interpreter.Interpreter import *
@@ -18,7 +18,7 @@ try:
         code = file.read().decode('utf-8')
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
-    errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
+    Errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
     
 # end region
 
@@ -86,7 +86,7 @@ if not semantic_check(ast):
 
 # region Interpreter
 
-interpreter = Interpreter(ast)
-result = interpreter.visit(ast)
+# interpreter = Interpreter(ast)
+# result = interpreter.visit(ast)
 
 # end region

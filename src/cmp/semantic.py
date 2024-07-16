@@ -35,11 +35,13 @@ class Method:
             other.param_types == self.param_types
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str, element_type:str = None):
         self.name = name
         self.attributes = []
         self.methods = []
         self.parent = None
+        self.args = []
+        element_type = element_type
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -99,7 +101,7 @@ class Type:
         return plain.values() if clean else plain
 
     def conforms_to(self, other):
-        return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
+        return other.bypass() or self.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
 
     def bypass(self):
         return False
@@ -165,7 +167,7 @@ class VoidType(Type):
     
 class VectorType(Type):
     def __init__(self, element_type, iterable):
-        super().__init__('Vector')
+        super().__init__('Vector', element_type)
         self.element_type = element_type
         self.set_parent(iterable)
 
@@ -208,25 +210,24 @@ class Context:
         try:
             return self.types[name]
         except KeyError:
-            attributes = []
-            for type in self.types:
-                for element in self.types[type].attributes:
-                    attributes.append(element)
-            try:
-                diccionario = {str(element): element for element in attributes}
-                return diccionario[name]
-            except KeyError:
-                raise SemanticError(f'Type "{name}" is not defined.')
+            if name == 'AutoType' or 'type AutoType {}':
+                return AutoType()
+            elif name == "<error>":
+                return ErrorType()
+            raise SemanticError(f'Type "{name}" is not defined.')
 
     def __str__(self):
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
 
     def __repr__(self):
         return str(self)
-    def create_function(self, name:str, param_names:"list[str]", param_types:list, return_type, current_node=None, body : list = []):
+    
+    def create_function(self, name:str, param_names:"list[str]", param_types:"list[Type]", return_type, 
+                        current_node=None, body : list = []):
         if name in self.types:
             raise SemanticError(f'Function with the same name ({name}) already in context.')
-        function = self.functions[name] = Function(name, param_names, param_types, return_type, current_node=current_node, body=body)
+        function = self.functions[name] = Function(name, param_names, param_types=param_types, return_type=return_type, 
+                                                    current_node=current_node, body=body)
         return function
     
     def get_function(self, name:str,n):
@@ -264,13 +265,14 @@ class Context:
                 break
         
         return common_ancestor
+    
 class Function:
     def __init__(self, name, param_names, return_type, param_types, current_node=None, body=None):
         self.name = name
         self.param_names = param_names
         self.param_types = param_types
         self.return_type = return_type
-        self.body  = body
+        self.body = body
         self.current_node = current_node
 
     def __eq__(self, other):
@@ -281,6 +283,7 @@ class VariableInfo:
         self.name = name
         self.type = vtype
         self.value = value
+    
     def set_value(self,value=None):
             self.value = value
 
@@ -300,11 +303,17 @@ class Scope:
         return child
 
     def define_variable(self, vname, vtype):
+        try:
+            if vtype.name == 'None':
+                vtype = AutoType()
+        except AttributeError:
+            if vtype == 'None':
+                vtype = AutoType()
         info = VariableInfo(vname, vtype)
         self.locals.append(info)
         return info
     
-    def replace_variable(self, vname, vtype, vreplace):
+    def replace_variable(self, vname, vtype):
         var=self.find_variable(vname)
         var.type=vtype
         return var

@@ -26,9 +26,9 @@ class FormatVisitor(object):
     @visitor.when(ProtocolDeclNode)
     def visit(self, node, tabs=0):
         if node.parents:
-            ans = '\t' * tabs + f'ProtocolDeclNode: protocol {node.id} extends {node.parents} -> {node.return_type}'
+            ans = '\t' * tabs + f'ProtocolDeclNode: protocol {node.id} extends {node.parents}'
         else:
-            ans = '\t' * tabs + f'ProtocolDeclNode: protocol {node.id} -> {node.return_type}'
+            ans = '\t' * tabs + f'ProtocolDeclNode: protocol {node.id}'
         methods = '\n'.join(self.visit(child, tabs + 1) for child in node.methods)
         return f'{ans}\n{methods}'
 

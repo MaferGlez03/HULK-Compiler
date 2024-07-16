@@ -2,7 +2,7 @@ from cmp.visitor import *
 from cmp.semantic import *
 from cmp.semantic import *
 from grammar.H_ast import *
-from Tools.errors import *
+from Tools.Errors import *
 
 
 class type_inference:
@@ -12,11 +12,11 @@ class type_inference:
         self.current_func = None
         self.object_type = self.context.get_type("Object")
         self.errors = errors
-        self.it =0
+        self.it = 0
 
     @visitor.on('node')
     def visit(self, node):
-        pass
+        self.Errors
 
     @visitor.when(ProgramNode)
     def visit(self, node:ProgramNode):
@@ -169,7 +169,7 @@ class type_inference:
         try:
           var= node.scope.find_variable(node.lex)
         except SemanticError as error:
-          self.errors.append(errors(node.line,0,str(error),'Semantic Error'))
+          self.errors.append(Errors(node.line,0,str(error),'Semantic Error'))
           return ErrorType()
         return var.type
         
@@ -195,7 +195,7 @@ class type_inference:
         attr = new_type.attributes
         attr_=[attri for attri in attr if (attri.name.startswith('IN') and attri.name.endswith('ESP'))]
         if len(args_types)!= len(attr_) and len(args_types)!=0:
-            self.errors.append(errors(node.line,0, f'New: Type {node.id} expects {len(attr)} but {len(args_types)} were given','Semantic Error'))
+            self.errors.append(Errors(node.line,0, f'New: Type {node.id} expects {len(attr)} but {len(args_types)} were given','Semantic Error'))
             return ErrorType()
         return new_type
         
@@ -206,16 +206,16 @@ class type_inference:
         except:
           variable = node.var.lex
         if variable == "self":
-            self.error.append(errors(node.line,0, "You can't modify self", 'Semantic Error'))
+            self.errors.append(Errors(node.line,0, "You can't modify self", 'Semantic Error'))
             return self.current_type
         var = node.scope.find_variable(variable)
         if var is not None:
             type= self.visit(node.expr)
             if var.type.name!= AutoType().name :
                 return var.type
-            node.scope.replace_variable(variable,type,variable)
+            node.scope.replace_variable(variable, type)
             return type
-        self.errors.append(errors(node.line,0,f'Variable {variable} is not defined','Semantic Error'))
+        self.errors.append(Errors(node.line,0,f'Variable {variable} is not defined','Semantic Error'))
         
     @visitor.when(LetExpNode)
     def visit(self, node:LetExpNode):
@@ -272,7 +272,7 @@ class type_inference:
     def visit(self, node:VectorIterableNode):
         iterable = self.visit(node.iterable)
         if not iterable.conforms_to(self.context.get_type('Iterable')):
-            self.errors.append(errors(node.line),0,f'{iterable} is not an iterable object')
+            self.errors.append(Errors(node.line),0,f'{iterable} is not an iterable object')
             return ErrorType()
         type_ = self.visit (node.expr)
         return VectorType(type_,self.context.get_type('Iterable')) if type_!= ErrorType() else ErrorType()
@@ -283,7 +283,7 @@ class type_inference:
         if self.current_type.parent:
             parent = self.current_type.parent
             if type(parent)== ErrorType():
-                self.errors.append(errors(node.line,0,f'Invalid parent type for {node.id} protocol'))
+                self.errors.append(Errors(node.line,0,f'Invalid parent type for {node.id} protocol'))
                 
         for item in node.methods:
             self.visit(item)
@@ -325,7 +325,7 @@ class type_inference:
         expr_type = self.visit(node.expr)
         if var_type.name==AutoType().name:
             var_type=expr_type
-            node.scope.replace_variable(node.id,expr_type,node.id)
+            node.scope.replace_variable(node.id, expr_type)
         
     @visitor.when(AttributeCallNode)
     def visit(self, node:AttributeCallNode):
@@ -335,7 +335,7 @@ class type_inference:
             attr = _type.get_attribute(node.id)
             return attr.type
         except SemanticError as e:
-            self.errors.append(errors(node.line,0,str(e),"Semantic Error" ))
+            self.errors.append(Errors(node.line,0,str(e),"Semantic Error" ))
             return ErrorType()
         
     @visitor.when(PropertyCallNode)
@@ -351,7 +351,7 @@ class type_inference:
             return method.return_type
         except SemanticError as e:
             if _type!=AutoType():
-                self.errors.append(errors(node.line,0,str(e),"Semantic Error"))
+                self.errors.append(Errors(node.line,0,str(e),"Semantic Error"))
             return AutoType()
     @visitor.when(FunctCallNode)
     def visit(self, node:FunctCallNode):
@@ -366,12 +366,12 @@ class type_inference:
         try:
             function = self.context.get_type(str(curr)).get_method(fun_name)
         except SemanticError as e:
-            self.errors.append(errors(node.line,0,str(e),"Semantic Error"))
+            self.errors.append(Errors(node.line,0,str(e),"Semantic Error"))
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
         if len(args_types) != len(function.param_types) :
-            self.errors.append(errors(node.line,0,f'Function: Expected {len(function.param_types)} arguments but got {len(args_types)}',"Semantic Error"))
+            self.errors.append(Errors(node.line,0,f'Function: Expected {len(function.param_types)} arguments but got {len(args_types)}',"Semantic Error"))
             return ErrorType()
         
         return function.return_type
@@ -387,7 +387,7 @@ class type_inference:
                 try:
                    params=self.context.get_type(str(node.parents)).attributes
                 except SemanticError as e:
-                 self.errors.append(errors(node.line,0,f'Invalid parent type for "{node.id}"',"Semantic Error"))
+                 self.errors.append(Errors(node.line,0,f'Invalid parent type for "{node.id}"',"Semantic Error"))
                  return ErrorType()
                
                 for param in params:
@@ -410,7 +410,7 @@ class type_inference:
 
         if self.current_type.parent:
             if type(self.current_type.parent) == ErrorType():
-                self.errors.append(errors(node.line,0,f'Invalid parent type for "{node.id}"',"Semantic Error"))
+                self.errors.append(Errors(node.line,0,f'Invalid parent type for "{node.id}"',"Semantic Error"))
             
         for attr in node.attributes:
             self.visit(attr)

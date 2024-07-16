@@ -1,23 +1,25 @@
 import cmp.visitor as visitor 
-from cmp.semantic import Context,SemanticError
+from cmp.semantic import Context,SemanticError, VectorType
 from grammar.H_ast import *
-from Tools.errors import *
+from Tools.Errors import *
 
 class typeDef:
-    def __init__(self,errors=[]):
+    def __init__(self, Errors=[]):
         self.context= None
-        self.error = errors
+        self.errors = Errors
         pass
     
     @visitor.on('node')
     def visit(self, node, scope):
         pass
+    
     @visitor.when(ProgramNode)
     def visit(self,node:ProgramNode):
         self.context= Context()
         #region Types
         self.context.create_type('<void>')
         self.context.create_type('None')
+        # self.context.create_type(AutoType().name)
         
         object = self.context.create_type('Object')
         number = self.context.create_type('Number')
@@ -60,8 +62,19 @@ class typeDef:
         function_.define_method('rand', [], [], number)
         function_.define_method('base', [], [], object)
         function_.define_method('parse', ['value'], [string_], number)
-        function_.define_method('range', ['min', 'max'], [number, number], range_)
+        function_.define_method('range', ['min', 'max'], [number, number], VectorType(number, iterable_protocol))
 
+        self.context.create_function('print', ['value'], [object], string_)
+        self.context.create_function('sqrt', ['value'], [number], number)
+        self.context.create_function('sin', ['angle'], [number], number)
+        self.context.create_function('cos', ['angle'], [number], number)
+        self.context.create_function('exp', ['value'], [number], number)
+        self.context.create_function('log', ['base', 'value'], [number, number], number)
+        self.context.create_function('rand', [], [], number)
+        self.context.create_function('base', [], [], object)
+        self.context.create_function('parse', ['value'], [string_], number)
+        self.context.create_function('range', ['min', 'max'], [number, number], range_)
+        
         iterable_protocol.define_method('next', [], [], boolean)
         iterable_protocol.define_method('current', [], [], object)
 
@@ -71,21 +84,30 @@ class typeDef:
         for item in node.definitionList:
             self.visit(item)
         self.visit(node.globalExpression)
-        return self.context, self.error
+        return self.context, self.errors
     
     @visitor.when(TypeDeclNode)
     def visit(self, node: TypeDeclNode):
         try:
-            self.context.create_type(node.id)
+            type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.error.append(errors(node.line,0,str(e),'Semantic Error'))#? set row and column
+            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
+            
+        # if node.parents is None:
+        #     try:
+        #         type.set_parent(node.parents)
+        #     except SemanticError as e:
+        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
         try:
-            self.context.create_type(node.id)
+            type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.error.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
-
+            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
         
-        
+        # if node.parents is None:
+        #     try:
+        #         type.set_parent(node.parents)
+        #     except SemanticError as e:
+        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))

@@ -1,8 +1,8 @@
-from .AST_type_inference import *
+from .check_types import *
 from .scope_def_visitor import *
 from .type_builder_visitor import *
 from .type_def_visitor import *
-from Tools.errors import *
+from Tools.Errors import *
 
 
 def semantic_check(ast):
@@ -33,6 +33,6 @@ def semantic_check(ast):
 
     if errs:
         for error in errs:
-            errors.printError(error)
+            Errors.printError(error)
         return False
     return True

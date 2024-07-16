@@ -19,7 +19,6 @@ protocol Hashable {
 protocol Equatable extends Hashable {
     equals(other: Object): Boolean;
 }
-
 type Point(x,y) {
     x = x;
     y = y;
@@ -128,7 +127,12 @@ type C inherits A {
             print("Even");
         }
         else print("Odd");
-    
+    let a = 42, mod = a % 3 in
+        print(
+            if (mod == 0) "Magic"
+            elif (mod % 3 == 1) "Woke"
+            else "Dumb"
+        );
     let a = 10 in while (a >= 0) {
         print(a);
         a := a - 1;
@@ -140,7 +144,8 @@ type C inherits A {
             let x = iterable.current() in
                 print(x);
 
-
+    let pt = new Point() in 
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
     let pt = new Point(3,4) in
         print("x: " @ pt.getX() @ "; y: " @ pt.getY());
     let pt = new PolarPoint(3,4) in
@@ -172,9 +177,6 @@ type C inherits A {
         for (x in numbers)
             print(x);
     let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
-     
     let squares = [x^2 || x in range(1,10)] in for (x in squares) print(x);
-    
-    let x : Hashable = new Point(0,0) in print(x.hash());
-    
+    let x : Hashable = new Person() in print(x.hash());
 }
