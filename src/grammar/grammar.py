@@ -133,11 +133,11 @@ idMultiple %= id__ + type_asignator__ + id__, lambda h,s: [VariableDeclNode(s[1]
 idMultiple %= id__ + comma__ + idMultiple, lambda h,s: [VariableDeclNode(s[1], None, None)] + s[3]
 idMultiple %= id__ + type_asignator__ + id__ + comma__ + idMultiple, lambda h,s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
-typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[4], None, None, None)
-typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[7], None, s[4], None)
-typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[6], s[4], None, None)
-typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[4], None, s[6])
-typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[7], s[4], None)
+typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[4], None, [], [])
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[7], None, s[4], [])
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[6], s[4], [], [])
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[4], [], s[6])
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[7], s[4], [])
 typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[12], s[7], s[4], s[9])
 # typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 # typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__

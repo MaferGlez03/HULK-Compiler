@@ -148,7 +148,7 @@ class ErrorType(Type):
         return True
 
     def __eq__(self, other):
-        return isinstance(other, Type)
+        return isinstance(other, Type) and self.name == other.name
 
 class VoidType(Type):
     def __init__(self):
@@ -305,17 +305,9 @@ class Scope:
         return info
     
     def replace_variable(self, vname, vtype, vreplace):
-        info = VariableInfo(vname, vtype)
-        try:
-            self.locals.remove(vreplace)
-            self.locals.append(info)
-            if self.parent != None:
-                self.parent.replace_variable(vname, vtype, vreplace)
-        except:
-            if self.parent != None:
-                self.parent.replace_variable(vname, vtype, vreplace)
-            
-        return info
+        var=self.find_variable(vname)
+        var.type=vtype
+        return var
 
     def find_variable(self, vname, index=None):
         # locals = self.locals if index is None else itt.islice(self.locals, index)
@@ -323,7 +315,10 @@ class Scope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
+            if self.parent is not None:
+                return self.parent.find_variable(vname, self.index)  
+            else:
+                raise SemanticError(f'Variable "{vname}" not found in scope')
 
     def find_variable1(self, vname, index=None):
         # locals = self.locals if index is None else itt.islice(self.locals, index)

@@ -78,7 +78,7 @@ class typeDef:
         try:
             self.context.create_type(node.id)
         except SemanticError as e:
-            self.error.append(errors(0,0,str(e),'Semantic Error'))#? set row and column
+            self.error.append(errors(node.line,0,str(e),'Semantic Error'))#? set row and column
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
