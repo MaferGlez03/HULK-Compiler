@@ -22,11 +22,10 @@ class FunctionDeclNode(DefinitionNode):
 
 
 class ProtocolDeclNode(DefinitionNode):
-    def __init__(self, id, methods, parents, return_type=None):
+    def __init__(self, id, methods, parents):
         self.id = id
         self.methods = methods
         self.parents = parents
-        self.return_type = return_type
 
 
 class TypeDeclNode(DefinitionNode):

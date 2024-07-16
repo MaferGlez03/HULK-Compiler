@@ -1,14 +1,14 @@
 from cmp.semantic import Scope, SemanticError, AutoType
 import cmp.visitor as visitor
 from grammar.H_ast import *
-from Tools.errors import *
+from Tools.Errors import *
 
 
 class scopeDef:
     def __init__(self, context, current_Type, errors=[]):
         self.context = context
         self.current_type = None
-        self.errors = errors
+        self.Errors = errors
         pass
 
     @visitor.on('node')
@@ -251,7 +251,7 @@ class scopeDef:
                 func_scope.define_variable(item, self.context.get_type(str(item.type)))
             except SemanticError as error:
                 if item.type != None:
-                    self.errors.append(errors(node.line, 0, str(error), 'Semantic Error'))
+                    self.Errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
                 else:
                     func_scope.define_variable(item.lex, AutoType())
         self.visit(node.body, func_scope)
@@ -273,7 +273,11 @@ class scopeDef:
         if node.args != None:
             for param in node.args:
                 try:
-                    node.scope.define_variable(param.id, self.context.get_type(str(param)))
+                    param_type = self.context.get_type(str(param))
+                    if param_type == None or param_type is None:
+                        node.scope.define_variable(param.id, AutoType())
+                    else:
+                        node.scope.define_variable(param.id, )
                 except SemanticError as e:
                     node.scope.define_variable(param.id, AutoType())
         for item in node.attributes:
@@ -289,7 +293,7 @@ class scopeDef:
         except SemanticError as error:
             if node.type != None:
                 # ? set row and column
-                self.errors.append(errors(node.line, 0, str(error), 'Semantic Error'))
+                self.Errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
             var_type = self.context.get_type('Object')
 
         scope.define_variable(node.id, var_type)

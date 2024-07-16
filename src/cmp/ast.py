@@ -1,8 +1,9 @@
 import cmp.visitor as visitor
+import cmp.semantic as semantic
 
 class Node:
     line=0
-    scope =None
+    scope:semantic.Scope =None
     def evaluate(self):
         raise NotImplementedError()
 

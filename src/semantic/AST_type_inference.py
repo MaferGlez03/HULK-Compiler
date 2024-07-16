@@ -2,7 +2,7 @@ from cmp.visitor import *
 from cmp.semantic import *
 from cmp.semantic import *
 from grammar.H_ast import *
-from Tools.errors import *
+from Tools.Errors import *
 
 
 class type_inference:
@@ -10,7 +10,7 @@ class type_inference:
         self.context = context
         self.current_type = None
         self.object_type = self.context.get_type("Object")
-        self.errors = errors
+        self.Errors = errors
 
     @visitor.on('node')
     def visit(self, node):
@@ -21,7 +21,7 @@ class type_inference:
         for definition in node.definitionList:
             self.visit(definition)
         self.visit(node.globalExpression)
-        return self.context, self.errors
+        return self.context, self.Errors
 
     @visitor.when(TypeDeclNode)
     def visit(self, node):
@@ -60,7 +60,7 @@ class type_inference:
         if self.current_type.parent:
             parent_type = self.current_type.parent
             if type(parent_type) == ErrorType():
-                self.errors.append(errors(node.line, 0, f'Invalid parent type for "{node.id}"', "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, f'Invalid parent type for "{node.id}"', "SEMANTIC ERROR"))
 
         for attribute in node.attributes:
             self.visit(attribute)
@@ -77,7 +77,7 @@ class type_inference:
         if self.current_type.parent:
             parent_type = self.current_type.parent
             if type(parent_type) == ErrorType():
-                self.errors.append(errors(node.line, 0, f'Invalid parent type for protocol "{node.id}"', "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, f'Invalid parent type for protocol "{node.id}"', "SEMANTIC ERROR"))
 
         for method in node.methods:
             self.visit(method)
@@ -102,7 +102,7 @@ class type_inference:
 
         return_type = self.visit(node.body)
         if node.body and not return_type.conforms_to(method.return_type) and method.return_type != self.object_type:
-            self.errors.append(errors(node.line, 0, 'Incompatible return type', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, 'Incompatible return type', "SEMANTIC ERROR"))
 
     def prototipes(self, clas, prot):
         if not all(method in prot.methods for method in clas.methods):
@@ -117,20 +117,20 @@ class type_inference:
             return
 
         if node.id == "self":
-            return self.object_type
+            return self.current_type
 
         if node.type != None:
             try:
                 var_type = self.context.get_type(str(node.type))
             except SemanticError as e:
-                self.errors.append(errors(node.line, 0, e.text, "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, e.text, "SEMANTIC ERROR"))
                 var_type = ErrorType()
         else:
             var_type = self.object_type
         expr_type = self.visit(node.expr)
 
         if not expr_type.conforms_to(var_type) and not self.prototipes(expr_type, var_type):
-            self.errors.append(errors(node.line, 0, f'Incompatible variable type, variable "{node.id}" with type "{expr_type}"', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Incompatible variable type, variable "{node.id}" with type "{expr_type}"', "SEMANTIC ERROR"))
         var_type = expr_type
         
         aux = node.scope.find_variable(node.id)
@@ -152,18 +152,18 @@ class type_inference:
         try:
             function = self.context.get_type('Function').get_method(node.lex)
         except SemanticError as e:
-            self.errors.append(errors(node.line, 0, str(e), "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, str(e), "SEMANTIC ERROR"))
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
 
         if len(args_types) != len(function.param_types):
-            self.errors.append(errors(node.line, 0, f'Expected {len(function.param_types)} arguments but got {len(args_types)}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Expected {len(function.param_types)} arguments but got {len(args_types)}', "SEMANTIC ERROR"))
             return ErrorType()
 
         for arg_type, param_type in zip(args_types, function.param_types):
             if arg_type.name != 'None' and param_type.name != 'None' and not arg_type.conforms_to(param_type):
-                self.errors.append(errors(node.line, 0, f'Incompatible argument type {arg_type} for parameter type {param_type}', "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, f'Incompatible argument type {arg_type} for parameter type {param_type}', "SEMANTIC ERROR"))
                 return ErrorType()
 
         return function.return_type
@@ -179,7 +179,7 @@ class type_inference:
             attr = obj_type.get_attribute(node.id)
             return attr.type
         except SemanticError as e:
-            self.errors.append(errors(node.line, 0, str(e), "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, str(e), "SEMANTIC ERROR"))
             return ErrorType()
 
     @visitor.when(IfExpNode)
@@ -190,7 +190,7 @@ class type_inference:
         elif_type = self.visit(node.elif_expr)
         else_type = self.visit(node.else_expr)
         if cond_type != self.context.get_type('Boolean'):
-            self.errors.append(errors(node.line, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
         if if_type == ErrorType():
             types.append(if_type)
         if elif_type == ErrorType():
@@ -205,7 +205,7 @@ class type_inference:
     def visit(self, node):
         cond_type = self.visit(node.cond)
         if cond_type != self.context.get_type('Boolean'):
-            self.errors.append(errors(node.line, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, 'Condition must be of type bool', "SEMANTIC ERROR"))
         return self.visit(node.expr)
 
     @visitor.when(ForExpNode)
@@ -213,7 +213,7 @@ class type_inference:
         iterable_type = self.visit(node.expr)
         iterable_protocol = self.context.get_type('Iterable')
         if not iterable_type.conforms_to(iterable_protocol):
-            self.errors.append(errors(node.line, 0, 'Expression must conform to Iterable protocol', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, 'Expression must conform to Iterable protocol', "SEMANTIC ERROR"))
         try:
             vtype = self.context.get_type(node.id)
         except Exception as e:
@@ -241,14 +241,14 @@ class type_inference:
             return ErrorType()
 
         if len(args_types) != len(ttype.attributes):
-            self.errors.append(errors(node.line, 0, f'Expected {len(ttype.attributes)} arguments but got {len(args_types)} calling "{node.id}"', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Expected {len(ttype.attributes)} arguments but got {len(args_types)} calling "{node.id}"', "SEMANTIC ERROR"))
             return ErrorType()
 
         for arg_type, attr in zip(args_types, ttype.attributes):
             try:
                 param_type = self.context.get_type(str(attr))
                 if not arg_type.conforms_to(param_type):
-                    self.errors.append(errors(node.line, 0, f'Incompatible argument type {arg_type} for parameter type {param_type} while calling "{node.id}"', "SEMANTIC ERROR"))
+                    self.Errors.append(Errors(node.line, 0, f'Incompatible argument type {arg_type} for parameter type {param_type} while calling "{node.id}"', "SEMANTIC ERROR"))
                     return ErrorType()
             except Exception as e:
                 return ErrorType()
@@ -257,10 +257,10 @@ class type_inference:
     @visitor.when(VariableNode)
     def visit(self, node):
         if node.lex == "self":
-            return self.object_type
+            return self.current_type
         var = node.scope.find_variable(str(node.lex))
         if var is None:
-            self.errors.append(errors(node.line, 0, f'Variable {node.lex} not defined', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Variable {node.lex} not defined', "SEMANTIC ERROR"))
             return ErrorType()
 
         return var.type
@@ -301,7 +301,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return number_type
@@ -325,7 +325,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -349,7 +349,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -373,7 +373,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -397,7 +397,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -421,7 +421,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Number')
@@ -446,7 +446,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -470,7 +470,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -494,7 +494,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -518,7 +518,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -542,7 +542,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -566,7 +566,7 @@ class type_inference:
 
         accepted = [number_type, AutoType()]
         if left_type not in accepted or right_type not in accepted:
-            self.errors.append(errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid comparison between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -577,7 +577,7 @@ class type_inference:
         right_type = self.visit(node.right)
 
         if left_type != self.context.get_type('Boolean') or right_type != self.context.get_type('Boolean'):
-            self.errors.append(errors(node.line, 0, f'Invalid logical operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid logical operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -588,7 +588,7 @@ class type_inference:
         right_type = self.visit(node.right)
 
         if left_type != self.context.get_type('Boolean') or right_type != self.context.get_type('Boolean'):
-            self.errors.append(errors(node.line, 0, f'Invalid logical operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid logical operation between {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -598,7 +598,7 @@ class type_inference:
         expr_type = self.visit(node.node) #! node.node o node.value??
 
         if expr_type != self.context.get_type('Boolean'):
-            self.errors.append(errors(node.line, 0, f'Invalid logical operation with {expr_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid logical operation with {expr_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('Boolean')
@@ -609,7 +609,7 @@ class type_inference:
         cast_type = self.context.get_type(str(node.right))
 
         if not expr_type.conforms_to(cast_type) and not cast_type.conforms_to(expr_type):
-            self.errors.append(errors(node.line, 0, f'Cannot cast {expr_type} to {cast_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Cannot cast {expr_type} to {cast_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return cast_type
@@ -624,12 +624,12 @@ class type_inference:
     def visit(self, node):
         index_type = self.visit(node.expr)
         if index_type != self.context.get_type('Number'):
-            self.errors.append(errors(node.line, 0, f'Index must be of type int, not {index_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Index must be of type int, not {index_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         obj_type = self.visit(node.factor)
         if not isinstance(obj_type, VectorType):
-            self.errors.append(errors(node.line, 0, f'Cannot index into non-vector type {obj_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Cannot index into non-vector type {obj_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return obj_type.get_element_type()
@@ -648,7 +648,7 @@ class type_inference:
         iterable_type = self.visit(node.iterable) 
         iterable_protocol = self.context.get_type('Iterable')
         if not iterable_type.conforms_to(iterable_protocol):
-            self.errors.append(errors(node.line, 0, f'{iterable_type} does not conform to Iterable protocol', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'{iterable_type} does not conform to Iterable protocol', "SEMANTIC ERROR"))
             return ErrorType()
 
         # scope = scope.create_child()
@@ -668,7 +668,7 @@ class type_inference:
         concatenable = [self.context.get_type('String'), self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in concatenable or right_type not in concatenable:
 
-            self.errors.append(errors(node.line, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('String')
@@ -681,7 +681,7 @@ class type_inference:
         concatenable = [self.context.get_type('String'), self.context.get_type('Number'), self.context.get_type('Object')]
         if left_type not in concatenable or right_type not in concatenable:
 
-            self.errors.append(errors(node.line, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Invalid concatenation between types {left_type} and {right_type}', "SEMANTIC ERROR"))
             return ErrorType()
 
         return self.context.get_type('String')
@@ -689,7 +689,7 @@ class type_inference:
     @visitor.when(PropertyCallNode)
     def visit(self, node):
         obj_type = self.visit(node.lex)
-
+        
         if obj_type != ErrorType():
             return ErrorType()
 
@@ -697,7 +697,7 @@ class type_inference:
             method = obj_type.get_method(node.id)
             return method.return_type
         except SemanticError as e:
-            self.errors.append(errors(node.line, 0, str(e), "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, str(e), "SEMANTIC ERROR"))
             return ErrorType()
 
     @visitor.when(AssignExpNode)
@@ -708,15 +708,15 @@ class type_inference:
             var_info = node.scope.find_variable(node.var.lex)
         if var_info is None:
             try:
-                self.errors.append(errors(node.line, 0, f'Variable "{node.var.id}" not defined on scope', "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, f'Variable "{node.var.id}" not defined on scope', "SEMANTIC ERROR"))
                 return ErrorType()
             except AttributeError:
-                self.errors.append(errors(node.line, 0, f'Variable "{node.var.lex}" not defined on scope', "SEMANTIC ERROR"))
+                self.Errors.append(Errors(node.line, 0, f'Variable "{node.var.lex}" not defined on scope', "SEMANTIC ERROR"))
                 return ErrorType()
 
         expr_type = self.visit(node.expr)
         if not expr_type.conforms_to(var_info.type):
-            self.errors.append(errors(node.line, 0, f'Cannot assign "{expr_type}" to "{var_info.type}"', "SEMANTIC ERROR"))
+            self.Errors.append(Errors(node.line, 0, f'Cannot assign "{expr_type}" to "{var_info.type}"', "SEMANTIC ERROR"))
             return ErrorType()
 
         return var_info.type
