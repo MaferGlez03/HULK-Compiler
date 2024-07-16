@@ -229,11 +229,11 @@ class Context:
         function = self.functions[name] = Function(name, param_names, param_types, return_type, current_node=current_node, body=body)
         return function
     
-    def get_function(self, name:str):
-        try:
-            return self.functions[name]
-        except KeyError:
-            raise SemanticError(f'Function "{name}" is not defined.')
+    def get_function(self, name:str,n):
+        for func in self.functions:
+            if self.functions[name].name== name and len(self.functions[name].param_names) == n:
+                return self.functions[name]
+        return None
 
     def lca(self, a: Type, b: Type) -> Type:
             ancestors_a = set()
@@ -308,6 +308,7 @@ class Scope:
         var=self.find_variable(vname)
         var.type=vtype
         return var
+
 
     def find_variable(self, vname, index=None):
         # locals = self.locals if index is None else itt.islice(self.locals, index)

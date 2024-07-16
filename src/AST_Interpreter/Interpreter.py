@@ -270,8 +270,8 @@ class Interpreter:
         arguments = [self.visit(arg) for arg in node.args]
         if function_name in built_in_func:
             return built_in_func[function_name](tuple(arguments))
+        function: Function = self.context.get_function(function_name,len(node.args))
         old_scope = copy.deepcopy(function.body.scope.parent.locals)
-        function: Function = self.context.get_function(function_name)
         body= function.body
         scope=body.scope
         for i, name in enumerate(function.param_names):
@@ -282,10 +282,29 @@ class Interpreter:
         return result
     @when(PropertyCallNode)
     def visit(self, node):
-        instance = self.visit(node.lex)                        #!Duda
-        property_name = node.id
-        property_value = instance.get_property(property_name)
-        return property_value
+        instance = node.lex.lex    
+        try:
+           property:TypeDeclNode = node.scope.find_variable(instance).value
+        except SemanticError as e:
+          if  instance == "self":
+            method: Function = self.context.get_function(node.id, len(node.args)) 
+            old_scope_locals = copy.deepcopy(method.body.scope.locals)
+            for i, vname in enumerate(method.param_names):
+                value = self.visit(node.args[i])
+                method.body.scope.find_variable(vname).set_value(value)  
+            value = self.visit(method.body)
+            method.body.scope.locals = old_scope_locals
+            return value           
+       
+        if isinstance(property, list):
+            if node.id == "next":
+                if len(property) == 0:
+                    return False
+                return True
+            if node.id == "current":
+                return property.pop(0)
+       
+       
     @when(AttributeCallNode)
     def visit(self, node):
         #value= node.scope.find_variable(node.id).value
