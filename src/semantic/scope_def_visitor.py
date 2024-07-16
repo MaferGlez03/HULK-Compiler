@@ -5,10 +5,10 @@ from Tools.Errors import *
 
 
 class scopeDef:
-    def __init__(self, context, current_Type, errors=[]):
+    def __init__(self, context, current_Type=None, errors=[]):
         self.context = context
-        self.current_type = None
-        self.errors = Errors
+        self.current_type = current_Type
+        self.errors = errors
         pass
 
     @visitor.on('node')
@@ -66,7 +66,11 @@ class scopeDef:
         ifScope = node.scope = scope
         self.visit(node.cond, ifScope.create_child())
         self.visit(node.if_expr, ifScope.create_child())
-        self.visit(node.elif_expr, ifScope.create_child())
+        try:
+            for elif_expr in node.elif_expr:
+                self.visit(elif_expr, ifScope.create_child())
+        except:
+            self.visit(node.elif_expr, ifScope.create_child())
         self.visit(node.else_expr, ifScope.create_child())
 
     @visitor.when(IndexExpNode)
@@ -253,7 +257,7 @@ class scopeDef:
                 func_scope.define_variable(item.id, self.context.get_type(str(item.type)))
             except SemanticError as error:
                 if item.type != None:
-                    self.errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
+                    self.errors.append(Errors(node.line, -1, str(error), 'Semantic Error'))
                 else:
                     func_scope.define_variable(item.id, AutoType())
         self.visit(node.body, func_scope)
@@ -293,7 +297,7 @@ class scopeDef:
         except SemanticError as error:
             if node.type != None:
                 # ? set row and column
-                self.Errors.append(Errors(node.line, 0, str(error), 'Semantic Error'))
+                self.errors.append(Errors(node.line, -1, str(error), 'Semantic Error'))
             var_type = AutoType()
         if var_type == None:
             var_type =AutoType()

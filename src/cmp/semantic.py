@@ -35,12 +35,13 @@ class Method:
             other.param_types == self.param_types
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str, element_type:str = None):
         self.name = name
         self.attributes = []
         self.methods = []
         self.parent = None
         self.args = []
+        element_type = element_type
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -166,7 +167,7 @@ class VoidType(Type):
     
 class VectorType(Type):
     def __init__(self, element_type, iterable):
-        super().__init__('Vector')
+        super().__init__('Vector', element_type)
         self.element_type = element_type
         self.set_parent(iterable)
 
@@ -209,7 +210,7 @@ class Context:
         try:
             return self.types[name]
         except KeyError:
-            if name == 'AutoType':
+            if name == 'AutoType' or 'type AutoType {}':
                 return AutoType()
             elif name == "<error>":
                 return ErrorType()
@@ -312,7 +313,7 @@ class Scope:
         self.locals.append(info)
         return info
     
-    def replace_variable(self, vname, vtype, vreplace):
+    def replace_variable(self, vname, vtype):
         var=self.find_variable(vname)
         var.type=vtype
         return var

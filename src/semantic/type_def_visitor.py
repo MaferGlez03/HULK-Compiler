@@ -1,5 +1,5 @@
 import cmp.visitor as visitor 
-from cmp.semantic import Context,SemanticError
+from cmp.semantic import Context,SemanticError, VectorType
 from grammar.H_ast import *
 from Tools.Errors import *
 
@@ -62,7 +62,7 @@ class typeDef:
         function_.define_method('rand', [], [], number)
         function_.define_method('base', [], [], object)
         function_.define_method('parse', ['value'], [string_], number)
-        function_.define_method('range', ['min', 'max'], [number, number], range_)
+        function_.define_method('range', ['min', 'max'], [number, number], VectorType(number, iterable_protocol))
 
         self.context.create_function('print', ['value'], [object], string_)
         self.context.create_function('sqrt', ['value'], [number], number)
@@ -84,18 +84,30 @@ class typeDef:
         for item in node.definitionList:
             self.visit(item)
         self.visit(node.globalExpression)
-        return self.context, self.error
+        return self.context, self.errors
     
     @visitor.when(TypeDeclNode)
     def visit(self, node: TypeDeclNode):
         try:
-            self.context.create_type(node.id)
+            type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))#? set row and column
+            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
+            
+        # if node.parents is None:
+        #     try:
+        #         type.set_parent(node.parents)
+        #     except SemanticError as e:
+        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
         try:
-            self.context.create_type(node.id)
+            type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(0,0,str(e),'Semantic Error'))#? set row and column
+            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
+        
+        # if node.parents is None:
+        #     try:
+        #         type.set_parent(node.parents)
+        #     except SemanticError as e:
+        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))

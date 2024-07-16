@@ -6,13 +6,14 @@ class Errors:
         self.errorType = errorType
 
     def printError(self):
-        truncated_message = self.message + "..." if len(self.message) > 50 else self.message
+        indice = self.message.find('\n')
+        truncated_message = self.message[:indice] + "..." if len(self.message) > 50 else self.message
         message = f"{truncated_message} | Error Type: {self.errorType}"
-        if self.row != 0:
+        if self.row >= 0:
             message+=(f" | Row: {self.row}")
-            if self.column != 0:
+            if self.column >= 0:
                 message+=(f", Column: {self.column}")
-        elif self.column != 0:
+        elif self.column >= 0:
             message+=(f" | Column: {self.column}")
             
         print(message)

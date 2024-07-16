@@ -86,7 +86,7 @@ if not semantic_check(ast):
 
 # region Interpreter
 
-interpreter = Interpreter(ast)
-result = interpreter.visit(ast)
+# interpreter = Interpreter(ast)
+# result = interpreter.visit(ast)
 
 # end region
