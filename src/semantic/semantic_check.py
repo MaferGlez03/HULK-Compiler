@@ -7,19 +7,19 @@ from Tools.Errors import *
 
 def semantic_check(ast):
     errs = []
-    
+
     print("COLLECTING TYPES...")
-    
+
     type_collector = typeDef(errs)
     context, errs = type_collector.visit(ast)
 
     print("BUILDING TYPES...")
-    
+
     type_fill = type_builder(context, errs)
     context, errs = type_fill.visit(ast)
 
     print("BUILDING SCOPES...")
-    
+
     var_collector = scopeDef(context, errs)
     scope = var_collector.visit(ast)
 
@@ -27,7 +27,7 @@ def semantic_check(ast):
     scope.define_variable("E", context.get_type("Number"))
 
     print("CHECKING TYPES...")
-    
+
     type_inf = type_inference(context, errs)
     context, errs = type_inf.visit(ast)
 

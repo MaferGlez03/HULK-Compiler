@@ -1,6 +1,7 @@
 import cmp.visitor as visitor
 from grammar.H_ast import *
 
+
 class FormatVisitor(object):
     @visitor.on('node')
     def visit(self, node, tabs):
@@ -108,7 +109,7 @@ class FormatVisitor(object):
             return f'{ans}\n{cond}\n{ifExpr}\n{elseExpr}'
         elifExpr = '\nElif '.join(self.visit(elif_, tabs + 1) for elif_ in node.elif_expr)
         if node.else_expr == [] or node.else_expr == None:
-                return f'{ans}\n{cond}\n{ifExpr}\n{elifExpr}'
+            return f'{ans}\n{cond}\n{ifExpr}\n{elifExpr}'
         return f'{ans}\n{cond}\n{ifExpr}\n{elifExpr}\n{elseExpr}'
 
     @visitor.when(IndexExpNode)
@@ -145,7 +146,7 @@ class FormatVisitor(object):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
         return f'{ans}\n{left}\n{right}'
-    
+
     @visitor.when(OrNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'OrNode'
@@ -276,7 +277,7 @@ class FormatVisitor(object):
 
     @visitor.when(NumberNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'NumberNode {node.lex}' 
+        ans = '\t' * tabs + f'NumberNode {node.lex}'
         return f'{ans} '
 
     @visitor.when(BooleanNode)

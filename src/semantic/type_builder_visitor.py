@@ -77,7 +77,7 @@ class type_builder:
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
-        
+
         try:
             self.current_type = self.context.get_type(str(node.id))
         except SemanticError as e:
@@ -129,7 +129,7 @@ class type_builder:
             try:
                 function_type = self.context.get_type('Function')
                 function_type.define_method(node.id, params_names, params_types, return_type)
-                #* Create function on context
+                # * Create function on context
                 self.context.create_function(node.id, params_names, params_types, return_type, node, node.body)
             except SemanticError as e:
                 self.errors.append(Errors(node.line, -1, str(e), 'Semantic Error'))

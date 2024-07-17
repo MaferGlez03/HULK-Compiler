@@ -1,6 +1,7 @@
 from cmp.pycompiler import EOF
 from cmp.tools.parsing import ShiftReduceParser
 
+
 def evaluate_reverse_parse(right_parse, operations, tokens):
     if not right_parse or not operations or not tokens:
         return
@@ -8,12 +9,12 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
     right_parse = iter(right_parse)
     tokens = iter(tokens)
     stack = []
-    current_line=None
+    current_line = None
     for operation in operations:
         if operation == ShiftReduceParser.SHIFT:
             token = next(tokens)
             stack.append(token.lex)
-            current_line =token.row
+            current_line = token.row
         elif operation == ShiftReduceParser.REDUCE:
             production = next(right_parse)
             head, body = production
@@ -24,13 +25,13 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
             if len(body):
                 synteticed = [None] + stack[-len(body):]
                 value = rule(None, synteticed)
-                if hasattr(value,"line"):
-                    value.line=current_line
+                if hasattr(value, "line"):
+                    value.line = current_line
                 stack[-len(body):] = [value]
             else:
-                value =rule(None, None)
-                if hasattr(value,"line"):
-                    value.line=current_line
+                value = rule(None, None)
+                if hasattr(value, "line"):
+                    value.line = current_line
                 stack.append(value)
         else:
             raise Exception('Invalid action!!!')

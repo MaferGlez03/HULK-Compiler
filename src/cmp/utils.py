@@ -1,5 +1,6 @@
 from cmp.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
 
+
 class ContainerSet:
     def __init__(self, *values, contains_epsilon=False):
         self.set = set(values)
@@ -62,9 +63,9 @@ class ContainerSet:
 def inspect(item, grammar_name='G', mapper=None):
     try:
         return mapper[item]
-    except (TypeError, KeyError ):
+    except (TypeError, KeyError):
         if isinstance(item, dict):
-            items = ',\n   '.join(f'{inspect(key, grammar_name, mapper)}: {inspect(value, grammar_name, mapper)}' for key, value in item.items() )
+            items = ',\n   '.join(f'{inspect(key, grammar_name, mapper)}: {inspect(value, grammar_name, mapper)}' for key, value in item.items())
             return f'{{\n   {items} \n}}'
         elif isinstance(item, ContainerSet):
             args = f'{ ", ".join(inspect(x, grammar_name, mapper) for x in item.set) } ,' if item.set else ''
@@ -83,10 +84,11 @@ def inspect(item, grammar_name='G', mapper=None):
             right = inspect(item.Right, grammar_name, mapper)
             return f'Production({left}, {right})'
         elif isinstance(item, tuple) or isinstance(item, list):
-            ctor = ('(', ')') if isinstance(item, tuple) else ('[',']')
+            ctor = ('(', ')') if isinstance(item, tuple) else ('[', ']')
             return f'{ctor[0]} {("%s, " * len(item)) % tuple(inspect(x, grammar_name, mapper) for x in item)}{ctor[1]}'
         else:
             raise ValueError(f'Invalid: {item}')
+
 
 def pprint(item, header=""):
     if header:
@@ -102,6 +104,7 @@ def pprint(item, header=""):
         print(']')
     else:
         print(item)
+
 
 class Token:
     """
@@ -131,6 +134,7 @@ class Token:
     def is_valid(self):
         return True
 
+
 class UnknownToken(Token):
     def __init__(self, lex):
         Token.__init__(self, lex, None)
@@ -141,6 +145,7 @@ class UnknownToken(Token):
     @property
     def is_valid(self):
         return False
+
 
 def tokenizer(G, fixed_tokens):
     def decorate(func):
@@ -167,9 +172,10 @@ def tokenizer(G, fixed_tokens):
             raise TypeError('Argument must be "str" or a callable object.')
     return decorate
 
+
 class DisjointSet:
     def __init__(self, *items):
-        self.nodes = { x: DisjointNode(x) for x in items }
+        self.nodes = {x: DisjointNode(x) for x in items}
 
     def merge(self, items):
         items = (self.nodes[x] for x in items)
@@ -182,7 +188,7 @@ class DisjointSet:
 
     @property
     def representatives(self):
-        return { n.representative for n in self.nodes.values() }
+        return {n.representative for n in self.nodes.values()}
 
     @property
     def groups(self):
@@ -199,6 +205,7 @@ class DisjointSet:
 
     def __repr__(self):
         return str(self)
+
 
 class DisjointNode:
     def __init__(self, value):

@@ -12,7 +12,7 @@ class PKL_Files:
             os.makedirs(object_name)
         with open(f'.\\{object_name}.pkl', 'wb') as file_pkl:
             dill.dump(object, file_pkl)
-    
+
     # use:
     # PKL_Files.load_object("lexer")
     def load_object(object_name):

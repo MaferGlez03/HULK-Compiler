@@ -7,10 +7,10 @@ from typing import List
 
 
 class type_inference:
-    def __init__(self, context:Context, errors:Errors=[]):
-        self.context:Context = context
-        self.current_type:Type = None
-        self.current_function:Function = None
+    def __init__(self, context: Context, errors: Errors = []):
+        self.context: Context = context
+        self.current_type: Type = None
+        self.current_function: Function = None
         self.object_type = self.context.get_type("Object")
         self.errors: List[Errors] = errors
 
@@ -19,14 +19,14 @@ class type_inference:
         pass
 
     @visitor.when(ProgramNode)
-    def visit(self, node:ProgramNode):
+    def visit(self, node: ProgramNode):
         for definition in node.definitionList:
             self.visit(definition)
         self.visit(node.globalExpression)
         return self.context, self.errors
 
     @visitor.when(TypeDeclNode)
-    def visit(self, node:TypeDeclNode):
+    def visit(self, node: TypeDeclNode):
         if node.id.startswith('<error>'):
             return
         self.current_type = self.context.get_type(node.id)
@@ -35,21 +35,26 @@ class type_inference:
         self.current_type = None
 
     @visitor.when(ProtocolDeclNode)
-    def visit(self, node:ProtocolDeclNode):
+    def visit(self, node: ProtocolDeclNode):
         if node.id.startswith('<error>'):
             return
         self.current_type = self.context.get_type(node.id)
         for method in node.methods:
             self.visit(method)
         self.current_type = None
-    
+
+    def protocol_coincidence(self, protocol_type: Type, assign_type: Type):
+        if all(prot_method.name in [method.name for method in assign_type.methods] for prot_method in protocol_type.methods):
+            return True
+        return False
+
     @visitor.when(FunctionDeclNode)
-    def visit(self, node:FunctionDeclNode):
+    def visit(self, node: FunctionDeclNode):
         if node.id.startswith('<error>'):
             return
         self.current_function = node.id
-        
-        #* None means not declareted
+
+        # * None means not declareted
         if node.return_type == None:
             return_type = AutoType()
         else:
@@ -59,30 +64,30 @@ class type_inference:
         for arg in node.args:
             arg_names.append(arg.id)
             if arg.type == None:
-                arg.type = AutoType().name #! |||||||| LO ARREGLA LA INFERENCIA DE TIPO ||||||||||||||||||
+                arg.type = AutoType().name  # ! |||||||| LO ARREGLA LA INFERENCIA DE TIPO ||||||||||||||||||
                 arg_types.append(arg.type)
             else:
                 arg_types.append(arg.type)
             node.scope.define_variable(arg.id, arg.type)
-            
-        #* Check types into body works
+
+        # * Check types into body works
         if node.body == None:
             body_type = AutoType()
         else:
             body_type = self.visit(node.body)
-            
+
         if not body_type.conforms_to(return_type):
             self.errors.append(Errors(node.line, -1, f"Function \"{node.id}\" body type \"{body_type}\" not conforms to function return type \"{return_type}\"", "SEMANTIC ERROR"))
-        
+
         self.current_function = None
-        
+
     @visitor.when(VariableDeclNode)
-    def visit(self, node:VariableDeclNode):
+    def visit(self, node: VariableDeclNode):
         if node.id.startswith('<error>'):
             return
-        if node.id=="self":
+        if node.id == "self":
             return self.current_type
-        
+
         if node.type != None:
             try:
                 var_type = self.context.get_type(node.type)
@@ -92,41 +97,42 @@ class type_inference:
         else:
             var_type = AutoType()
         expr_type = self.visit(node.expr)
-        
+
         if var_type.name == AutoType().name:
             node.scope.replace_variable(node.id, expr_type)
             var_type = expr_type
-        
-        if not expr_type.conforms_to(var_type):
+
+        if not expr_type.conforms_to(var_type) and not self.protocol_coincidence(var_type, expr_type):
             self.errors.append(Errors(node.line, -1, f'Incompatible variable type, variable "{node.id}" with type "{expr_type}"', "SEMANTIC ERROR"))
         var_type = expr_type
-        
 
     @visitor.when(ExpBlockNode)
-    def visit(self, node:ExpBlockNode):
+    def visit(self, node: ExpBlockNode):
         expr_type = ErrorType()
         for expression in node.expLineList:
             expr_type = self.visit(expression)
         return expr_type
 
     @visitor.when(NewExpNode)
-    def visit(self, node:NewExpNode):
+    def visit(self, node: NewExpNode):
         try:
             return_type = self.context.get_type(node.id)
         except SemanticError as e:
             self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
-        
+
         try:
             args_types = [self.visit(arg) for arg in node.args]
         except SemanticError as e:
             self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
-        
+
         attributes = []
         if len(args_types) != len(return_type.attributes):
             if len(args_types) == len(return_type.parent.attributes):
                 attributes = return_type.parent.attributes
+            elif len(args_types) == 0:
+                return return_type
             else:
                 self.errors.append(Errors(node.line, -1, f'Expected {len(return_type.attributes)} arguments but got {len(args_types)} calling "{node.id}"', "SEMANTIC ERROR"))
                 return ErrorType()
@@ -140,11 +146,11 @@ class type_inference:
                     self.errors.append(Errors(node.line, -1, f'Incompatible argument type "{arg_type.name}" for parameter type "{param_type.name}" while calling "{node.id}"', "SEMANTIC ERROR",))
                     return ErrorType()
             except Exception as e:
-                return ErrorType()    
+                return ErrorType()
         return return_type
 
     @visitor.when(AssignExpNode)
-    def visit(self, node:AssignExpNode):
+    def visit(self, node: AssignExpNode):
         var_type = self.visit(node.var)
         # if var_type is None:
         #     self.errors.append(Errors(node.line, -1, f"Variable {node.var} not defined on program", "SEMANTIC ERROR"))
@@ -156,26 +162,26 @@ class type_inference:
         else:
             self.errors.append(Errors(node.line, -1, f'Cannot assign "{expr_type}" to "{var_type.type}"', "SEMANTIC ERROR"))
             return ErrorType()
-    
+
     @visitor.when(LetExpNode)
-    def visit(self, node:LetExpNode):
+    def visit(self, node: LetExpNode):
         for assign in node.varAssignation:
             self.visit(assign)
         return self.visit(node.expr)
 
     @visitor.when(WhileExpNode)
-    def visit(self, node:WhileExpNode):
+    def visit(self, node: WhileExpNode):
         cond_type = self.visit(node.cond)
         if cond_type != self.context.get_type("Boolean"):
             self.errors.append(Errors(node.line, -1, f"Condition type must be Boolean not {cond_type}", "SEMANTIC ERROR"))
         return self.visit(node.expr)
 
     @visitor.when(ForExpNode)
-    def visit(self, node:ForExpNode):
+    def visit(self, node: ForExpNode):
         try:
             var = node.scope.find_variable(node.id)
         except Exception as e:
-            self.errors.append(Errors(node.line, 0, str(e), "SEMANTIC ERROR"))
+            self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
         try:
             iterable_type = self.context.get_type(str(var.type))
@@ -183,27 +189,27 @@ class type_inference:
             self.errors.append(Errors(node.line, -1, "You must be assign an iterable", "SEMANTIC ERROR"))
             return ErrorType()
         expr_type = self.visit(node.expr)
-        
+
         try:
             if not expr_type.element_type.conforms_to(iterable_type):
                 self.errors.append(Errors(node.line, -1, f'Expression type must be conforms to Iterable protocol', "SEMANTIC ERROR"))
         except:
             if not expr_type.conforms_to(iterable_type):
                 self.errors.append(Errors(node.line, -1, f'Expression type must be conforms to Iterable protocol', "SEMANTIC ERROR"))
-        
-        #? var = node.scope.find_variable(node.id)
-        #? if var is None:
-        #?     self.errors.append(Errors(node.line, -1, f'Variable {node.id} not defined on program', "SEMANTIC ERROR"))
-        #? else:
-        #?     try:
-        #?         self.context.get_type(var.type)
-        #?     except Exception as e:
-        #?         self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
-        
+
+        # ? var = node.scope.find_variable(node.id)
+        # ? if var is None:
+        # ?     self.errors.append(Errors(node.line, -1, f'Variable {node.id} not defined on program', "SEMANTIC ERROR"))
+        # ? else:
+        # ?     try:
+        # ?         self.context.get_type(var.type)
+        # ?     except Exception as e:
+        # ?         self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
+
         return self.visit(node.body)
-    
+
     @visitor.when(IfExpNode)
-    def visit(self, node:IfExpNode):
+    def visit(self, node: IfExpNode):
         cond_type = self.visit(node.cond)
         if cond_type != self.context.get_type("Boolean"):
             self.errors.append(Errors(node.line, -1, f"Condition type must be Boolean not {cond_type}", "SEMANTIC ERROR"))
@@ -231,26 +237,26 @@ class type_inference:
             return types[0] if len(types) == 1 else self.context.lowest_common_ancestor(types)
 
     @visitor.when(IndexExpNode)
-    def visit(self, node:IndexExpNode):
-        #* Check index type us number
+    def visit(self, node: IndexExpNode):
+        # * Check index type us number
         index_type = self.visit(node.expr)
         number_type = self.context.get_type("Number")
         if not index_type.conforms_to(number_type):
             self.errors.append(Errors(node.line, -1, f"Index must be of type int, not {index_type}", "SEMANTIC ERROR"))
-        
-        #* Check vector type is iterable
+
+        # * Check vector type is iterable
         vector_type = self.visit(node.factor)
         iterable_type = self.context.get_type("Iterable")
         if not vector_type.conforms_to(iterable_type):
             self.errors.append(Errors(node.line, -1, f"Cannot index on a {vector_type}, it's not iterable", "SEMANTIC ERROR"))
-        
+
         try:
             return vector_type.element_type
         except:
             return ErrorType()
 
     @visitor.when(VectorIterableNode)
-    def visit(self, node:VectorIterableNode):
+    def visit(self, node: VectorIterableNode):
         variable = node.scope.find_variable(node.id)
         iterable_type = self.visit(node.iterable)
         try:
@@ -269,7 +275,7 @@ class type_inference:
         return VectorType(return_type, self.context.get_type("Iterable"))
 
     @visitor.when(ConcatNode)
-    def visit(self, node:ConcatNode):
+    def visit(self, node: ConcatNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         string_type = self.context.get_type("String")
@@ -281,7 +287,7 @@ class type_inference:
         return string_type
 
     @visitor.when(ConcatSpaceNode)
-    def visit(self, node:ConcatSpaceNode):
+    def visit(self, node: ConcatSpaceNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         string_type = self.context.get_type("String")
@@ -293,7 +299,7 @@ class type_inference:
         return string_type
 
     @visitor.when(AndNode)
-    def visit(self, node:AndNode):
+    def visit(self, node: AndNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -302,9 +308,9 @@ class type_inference:
             self.errors.append(Errors(node.line, -1, f"The AND operation is not allowed between {left_type} and {right_type}", "SEMANTIC ERROR"))
             return ErrorType()
         return bool_type
-    
+
     @visitor.when(OrNode)
-    def visit(self, node:OrNode):
+    def visit(self, node: OrNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -315,7 +321,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(NotEqualNode)
-    def visit(self, node:NotEqualNode):
+    def visit(self, node: NotEqualNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -327,7 +333,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(LessThanNode)
-    def visit(self, node:LessThanNode):
+    def visit(self, node: LessThanNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -339,7 +345,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(EqualNode)
-    def visit(self, node:EqualNode):
+    def visit(self, node: EqualNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -351,7 +357,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(GreaterThanNode)
-    def visit(self, node:GreaterThanNode):
+    def visit(self, node: GreaterThanNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -363,7 +369,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(LessThanEqualNode)
-    def visit(self, node:LessThanEqualNode):
+    def visit(self, node: LessThanEqualNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -375,7 +381,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(GreaterThanEqualNode)
-    def visit(self, node:GreaterThanEqualNode):
+    def visit(self, node: GreaterThanEqualNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         bool_type = self.context.get_type("Boolean")
@@ -387,19 +393,18 @@ class type_inference:
         return bool_type
 
     @visitor.when(IsNode)
-    def visit(self, node:IsNode):
+    def visit(self, node: IsNode):
         try:
             self.context.get_type(node.right)
         except Exception as e:
             self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
-        
+
         self.visit(node.left)
         return self.context.get_type("Boolean")
-        
 
     @visitor.when(PlusNode)
-    def visit(self, node:PlusNode):
+    def visit(self, node: PlusNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -410,7 +415,7 @@ class type_inference:
         return number_type
 
     @visitor.when(MinusNode)
-    def visit(self, node:MinusNode):
+    def visit(self, node: MinusNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -421,7 +426,7 @@ class type_inference:
         return number_type
 
     @visitor.when(DivisionNode)
-    def visit(self, node:DivisionNode):
+    def visit(self, node: DivisionNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -432,7 +437,7 @@ class type_inference:
         return number_type
 
     @visitor.when(MultiplicationNode)
-    def visit(self, node:MultiplicationNode):
+    def visit(self, node: MultiplicationNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -441,9 +446,9 @@ class type_inference:
             self.errors.append(Errors(node.line, -1, f"The MULTIPLICATION ( * ) operation is not allowed between {left_type} and {right_type}", "SEMANTIC ERROR"))
             return ErrorType()
         return number_type
-    
+
     @visitor.when(ModuleNode)
-    def visit(self, node:ModuleNode):
+    def visit(self, node: ModuleNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -454,7 +459,7 @@ class type_inference:
         return number_type
 
     @visitor.when(PowerNode)
-    def visit(self, node:PowerNode):
+    def visit(self, node: PowerNode):
         left_type = self.visit(node.left)
         right_type = self.visit(node.right)
         number_type = self.context.get_type("Number")
@@ -465,7 +470,7 @@ class type_inference:
         return number_type
 
     @visitor.when(AsNode)
-    def visit(self, node:AsNode):
+    def visit(self, node: AsNode):
         try:
             type = self.context.get_type(node.right)
         except Exception as e:
@@ -475,7 +480,7 @@ class type_inference:
         return type
 
     @visitor.when(NotNode)
-    def visit(self, node:NotNode):
+    def visit(self, node: NotNode):
         node_type = self.visit(node.node)
         bool_type = self.context.get_type("Boolean")
         correct_types = [bool_type, AutoType(), AutoType().name]
@@ -485,7 +490,7 @@ class type_inference:
         return bool_type
 
     @visitor.when(NegNode)
-    def visit(self, node:NegNode):
+    def visit(self, node: NegNode):
         node_type = self.visit(node.node)
         number_type = self.context.get_type("Number")
         correct_types = [number_type, AutoType(), AutoType().name]
@@ -495,7 +500,7 @@ class type_inference:
         return number_type
 
     @visitor.when(VectorNode)
-    def visit(self, node:VectorNode):
+    def visit(self, node: VectorNode):
         types = []
         for lex in node.lex:
             types.append(self.visit(lex))
@@ -506,9 +511,9 @@ class type_inference:
             return ErrorType()
         vector_type = VectorType(lca, self.context.get_type('Iterable'))
         return vector_type
-        
+
     @visitor.when(VariableNode)
-    def visit(self, node:VariableNode):
+    def visit(self, node: VariableNode):
         if node.lex == "self":
             return self.current_type
         try:
@@ -525,60 +530,51 @@ class type_inference:
             try:
                 return self.context.get_type(str(variable.type))
             except:
-                
+
                 try:
                     return self.context.get_type(str(variable.type.element_type.name))
                 except:
                     return self.context.get_type(str(variable.type.element_type))
 
     @visitor.when(NumberNode)
-    def visit(self, node:NumberNode):
+    def visit(self, node: NumberNode):
         return self.context.get_type("Number")
 
     @visitor.when(BooleanNode)
-    def visit(self, node:BooleanNode):
+    def visit(self, node: BooleanNode):
         return self.context.get_type("Boolean")
 
     @visitor.when(StringNode)
-    def visit(self, node:StringNode):
+    def visit(self, node: StringNode):
         return self.context.get_type("String")
 
     @visitor.when(FunctCallNode)
-    def visit(self, node:FunctCallNode):
-        # function_name = node.lex
-        # curr = 'Function'
-        # if node.lex == "base":
-        #     curr = self.current_type.parent.name
-        #     function_name = self.current_function
-
-        # try:
-        #     function = self.context.get_type(curr).get_method(function_name)
+    def visit(self, node: FunctCallNode):
         if node.lex == "base":
             function = self.current_type.parent.get_method(self.current_function)
         else:
             try:
-                function = self.context.get_function(node.lex)
+                function = self.context.get_function(node.lex, len(node.args))
             except SemanticError as e:
                 self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
                 for arg in node.args:
                     self.visit(arg)
                 return ErrorType()
-            
+
         if len(function.param_names) != len(node.args):
             self.errors.append(Errors(node.line, -1, f'Expected {len(function.param_names)} arguments but got {len(node.args)} calling "{node.lex}', "SEMANTIC ERROR"))
             return ErrorType()
-        
+
         for arg, param_type in zip(node.args, function.param_types):
             arg_type = self.context.get_type(self.visit(arg).name)
             if not arg_type.conforms_to(param_type):
                 self.errors.append(Errors(node.line, -1, f'The argument type does not match the declared argument type', "SEMANTIC ERROR"))
                 return ErrorType()
-            
+
         return function.return_type
-        
 
     @visitor.when(PropertyCallNode)
-    def visit(self, node:PropertyCallNode):
+    def visit(self, node: PropertyCallNode):
         try:
             calling_type = self.visit(node.lex)
         except Exception as e:
@@ -586,7 +582,7 @@ class type_inference:
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
-        
+
         try:
             function = calling_type.get_method(node.id)
         except Exception as e:
@@ -594,17 +590,17 @@ class type_inference:
             for arg in node.args:
                 self.visit(arg)
             return ErrorType()
-        
+
         for arg, param_type in zip(node.args, function.param_types):
             arg_type = self.visit(arg)
             if not arg_type.conforms_to(param_type):
                 self.errors.append(Errors(node.line, -1, f'The argument type does not match the declared argument type', "SEMANTIC ERROR"))
                 return ErrorType()
-        
-        return function.return_type        
+
+        return function.return_type
 
     @visitor.when(AttributeCallNode)
-    def visit(self, node:AttributeCallNode):
+    def visit(self, node: AttributeCallNode):
         if node.lex.lex == "self":
             calling_type = self.current_type
         else:
@@ -613,12 +609,11 @@ class type_inference:
             except Exception as e:
                 self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
                 return ErrorType()
-        
+
         try:
             attribute = calling_type.get_attribute(node.id)
         except Exception as e:
             self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
-        
+
         return self.context.get_type(attribute.type.name)
-        
