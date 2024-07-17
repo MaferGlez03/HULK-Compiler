@@ -6,16 +6,21 @@ import copy
 import math
 import random
 
+
 def Print(x):
     print(x)
     return x
+
+
 def range_(min, max):
     iterable = []
     for i in range(min, max):
         iterable.append(i)
     return iterable
+
+
 built_in_func = {
-    "range":lambda x:range_(int(x[0]),int(x[1])),
+    "range": lambda x: range_(int(x[0]), int(x[1])),
     "print": lambda x: Print(*x),
     "sqrt": lambda x: math.sqrt(*x),
     "sin": lambda x: math.sin(*x),
@@ -26,15 +31,15 @@ built_in_func = {
     "parse": lambda x: float(*x),
 }
 
+
 class Interpreter:
-    def __init__(self,ast):
-        errors=[]
+    def __init__(self, ast):
+        errors = []
         type_collector = typeDef(errors)
         context, errors = type_collector.visit(ast)
-        
 
         self.context = context
-    
+
     @on('node')
     def visit(self, node):
         pass
@@ -44,10 +49,11 @@ class Interpreter:
         for definition in node.definitionList:
             self.visit(definition)
         return self.visit(node.globalExpression)
-    
+
     @when(DefinitionNode)
     def visit(self, node):
         pass
+
     @when(ExpressionNode)
     def visit(self, node):
         pass
@@ -56,111 +62,110 @@ class Interpreter:
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(MinusNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(MultiplicationNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(DivisionNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(AndNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(OrNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(GreaterThanNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(LessThanNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(GreaterThanEqualNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(LessThanEqualNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(EqualNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
     @when(NotEqualNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(PowerNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(IsNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(AsNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(ModuleNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
-    
+        return node.operate(left, right)
+
     @when(ConcatSpaceNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
+
     @when(ConcatNode)
     def visit(self, node):
         left = self.visit(node.left)
         right = self.visit(node.right)
-        return node.operate(left,right)
+        return node.operate(left, right)
 
-
-    
     @when(NotNode)
     def visit(self, node):
         value = self.visit(node.node)
@@ -170,37 +175,36 @@ class Interpreter:
     def visit(self, node):
         value = self.visit(node.node)
         return -value
-    
-    
+
     @when(NumberNode)
     def visit(self, node):
-        number =node.lex
-        if number=="PI":
+        number = node.lex
+        if number == "PI":
             return math.pi
-        elif number =="E":
+        elif number == "E":
             return math.e
         else:
             return float(node.lex)
-    
+
     @when(StringNode)
     def visit(self, node):
         return node.lex.strip('"')
-    
+
     @when(BooleanNode)
     def visit(self, node):
-         return node.lex.lower() == 'true'
-    
+        return node.lex.lower() == 'true'
+
     @when(VectorNode)
     def visit(self, node):
         return [self.visit(element) for element in node.lex]
-    
+
     @when(ExpBlockNode)
     def visit(self, node):
         evaluation = None
         for expression in node.expLineList:
             evaluation = self.visit(expression)
         return evaluation
-    
+
     @when(IndexExpNode)
     def visit(self, node):
         array = self.visit(node.factor)
@@ -216,25 +220,24 @@ class Interpreter:
             return self.visit(node.elif_expr)
         else:
             return self.visit(node.else_expr)
-    
+
     @when(WhileExpNode)
     def visit(self, node):
-        result= None
+        result = None
         while self.visit(node.cond):
-            result=self.visit(node.expr)
+            result = self.visit(node.expr)
         return result
-            
-    
+
     @when(ForExpNode)
     def visit(self, node):
-        result=None
+        result = None
         iterator = node.scope.find_variable(node.id)
         iterable = self.visit(node.expr)
         for value in iterable:
             iterator.set_value(value)
-            result=self.visit(node.body)
+            result = self.visit(node.body)
         return result
-        
+
     # region declaration
     @when(FunctionDeclNode)
     def visit(self, node):
@@ -242,27 +245,28 @@ class Interpreter:
         param_names = [param.id for param in node.args]
         param_types = [self.context.get_type(str(param.type)) for param in node.args]
         return_type = self.context.get_type(str(node.return_type))
-        function = self.context.create_function(function_name, param_names, param_types,None, return_type,node.body)
+        function = self.context.create_function(function_name, param_names, param_types, None, return_type, node.body)
         return function
+
     @when(TypeDeclNode)
     def visit(self, node):
         type_name = node.id
         typex = self.context.get_type(type_name)
         return typex
-    
+
     @when(ProtocolDeclNode)
     def visit(self, node):
         type_name = node.id
         typex = self.context.get_type(type_name)
         return typex
+
     @when(VariableDeclNode)
-    def visit(self, node:VariableDeclNode):
+    def visit(self, node: VariableDeclNode):
         value = self.visit(node.expr)
         var_name = node.id
         var_type = self.context.get_type(str(node.type))
-        var=node.scope.find_variable(var_name, var_type)
+        var = node.scope.find_variable(var_name, var_type)
         var.set_value(value)
-    
 
     @when(FunctCallNode)
     def visit(self, node):
@@ -272,34 +276,35 @@ class Interpreter:
             return built_in_func[function_name](tuple(arguments))
         old_scope = copy.deepcopy(function.body.scope.parent.locals)
         function: Function = self.context.get_function(function_name)
-        body= function.body
-        scope=body.scope
+        body = function.body
+        scope = body.scope
         for i, name in enumerate(function.param_names):
             variable = scope.find_variable(name)
             variable.set_value(arguments[i])
-        result= self.visit(function.body)
+        result = self.visit(function.body)
         function.body.scope.parent.locals = old_scope
         return result
+
     @when(PropertyCallNode)
     def visit(self, node):
-        instance = self.visit(node.lex)                        #!Duda
+        instance = self.visit(node.lex)  # !Duda
         property_name = node.id
         property_value = instance.get_property(property_name)
         return property_value
+
     @when(AttributeCallNode)
     def visit(self, node):
-        #value= node.scope.find_variable(node.id).value
+        # value = node.scope.find_variable(node.id).value
         instance = self.context.get_type(str(node.lex))
         attribute_name = node.id
         attribute_value = instance.get_attribute(attribute_name)
         return attribute_value
 
-    
     @when(VariableNode)
     def visit(self, node):
-       var_name = node.lex
-       variable = node.scope.find_variable(str(var_name))
-       return variable.value
+        var_name = node.lex
+        variable = node.scope.find_variable(str(var_name))
+        return variable.value
 
     @when(AssignExpNode)
     def visit(self, node):
@@ -307,7 +312,7 @@ class Interpreter:
         var_value = self.visit(node.expr)
         variable = node.scope.find_variable(str(var_name))
         variable.set_value(var_value)
-    
+
     @when(NewExpNode)
     def visit(self, node):
         type_name = node.id
@@ -315,52 +320,20 @@ class Interpreter:
         arguments = [self.visit(arg) for arg in node.args]
         instance = typex(*arguments)
         return instance
-    
+
     @when(LetExpNode)
     def visit(self, node):
         for decl in node.varAssignation:
             self.visit(decl)
         result = self.visit(node.expr)
         return result
+
     @when(VectorIterableNode)
     def visit(self, node):
-        iterable=self.visit(node.iterable)
-        result=[]
+        iterable = self.visit(node.iterable)
+        result = []
         for i in iterable:
             node.expr.scope.define_variable(node.id, AutoType())
-            node.expr.scope.find_variable(
-                node.id
-            ).set_value(i)
+            node.expr.scope.find_variable(node.id).set_value(i)
             result.append(self.visit(node.expr))
         return result
-
-
-    
-   
-
-   
-
-    
-
-   
-
-   
-   
-
-
-
-    
-
-   
-
-   
-
-    
-
-    
-
-    
-
-
-
-

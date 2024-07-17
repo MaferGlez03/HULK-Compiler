@@ -276,14 +276,15 @@ class scopeDef:
         node.scope = scope
         type_scope = scope.create_child()
         self.current_type = self.context.get_type(str(node.id))
-        
+
         for param in node.args:
-                try:
-                    if param.type!=None:
-                        node.scope.define_variable(param.id, self.context.get_type(str(param.type)))
-                    else: raise SemanticError()
-                except SemanticError as e:
-                    node.scope.define_variable(param.id, AutoType())
+            try:
+                if param.type != None:
+                    node.scope.define_variable(param.id, self.context.get_type(str(param.type)))
+                else:
+                    raise SemanticError()
+            except SemanticError as e:
+                node.scope.define_variable(param.id, AutoType())
         for item in node.attributes:
             self.visit(item, type_scope)
         self.current_type = None
@@ -300,6 +301,6 @@ class scopeDef:
                 self.errors.append(Errors(node.line, -1, str(error), 'Semantic Error'))
             var_type = AutoType()
         if var_type == None:
-            var_type =AutoType()
+            var_type = AutoType()
         scope.define_variable(node.id, var_type)
         self.visit(node.expr, var_scope)

@@ -67,7 +67,7 @@ as__ = G.Terminal('as')
 
 id__ = G.Terminal('id')
 number__ = G.Terminal('number')
-string__= G.Terminal('string')
+string__ = G.Terminal('string')
 booleanValue__ = G.Terminal('bool')
 new__ = G.Terminal('new')
 type__ = G.Terminal('type')
@@ -105,11 +105,11 @@ lte__ = G.Terminal('<=')
 eq__ = G.Terminal('==')
 neq__ = G.Terminal('!=')
 
-#productions
+# productions
 program %= definitionList + globalExpression, lambda h, s: ProgramNode(s[1], s[2]), None, None
 
 definitionList %= G.Epsilon, lambda h, s: []
-definitionList %= definition + definitionList, lambda h, s: [s[1]] + s[2], None, None 
+definitionList %= definition + definitionList, lambda h, s: [s[1]] + s[2], None, None
 
 definition %= functionDefinition, lambda h, s: s[1]
 definition %= typeDefinition, lambda h, s: s[1]
@@ -120,25 +120,25 @@ functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_p
 functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__, lambda h, s: FunctionDeclNode(s[2], s[4], s[9], s[7])
 functionDefinition %= function__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock, lambda h, s: FunctionDeclNode(s[2], s[4], s[8], s[7])
 
-methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + func_arrow__ + expression + semicolon__, lambda h,s: FunctionDeclNode(s[1], s[3], s[6])
-methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + expressionBlock, lambda h,s: FunctionDeclNode(s[1], s[3], s[5])
-methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__, lambda h,s: FunctionDeclNode(s[1], s[3], s[8], s[6])
-methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock, lambda h,s: FunctionDeclNode(s[1], s[3], s[7], s[6])
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + func_arrow__ + expression + semicolon__, lambda h, s: FunctionDeclNode(s[1], s[3], s[6])
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + expressionBlock, lambda h, s: FunctionDeclNode(s[1], s[3], s[5])
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + func_arrow__ + expression + semicolon__, lambda h, s: FunctionDeclNode(s[1], s[3], s[8], s[6])
+methodDefinition %= id__ + open_parenthesis__ + idList + closed_parenthesis__ + type_asignator__ + id__ + expressionBlock, lambda h, s: FunctionDeclNode(s[1], s[3], s[7], s[6])
 
-idList %= G.Epsilon, lambda h,s: []
-idList %= idMultiple, lambda h,s: s[1]
+idList %= G.Epsilon, lambda h, s: []
+idList %= idMultiple, lambda h, s: s[1]
 
-idMultiple %= id__, lambda h,s: [VariableDeclNode(s[1], None, None)]
-idMultiple %= id__ + type_asignator__ + id__, lambda h,s: [VariableDeclNode(s[1], s[3], None)]
-idMultiple %= id__ + comma__ + idMultiple, lambda h,s: [VariableDeclNode(s[1], None, None)] + s[3]
-idMultiple %= id__ + type_asignator__ + id__ + comma__ + idMultiple, lambda h,s: [VariableDeclNode(s[1], s[3], None)] + s[5]
+idMultiple %= id__, lambda h, s: [VariableDeclNode(s[1], None, None)]
+idMultiple %= id__ + type_asignator__ + id__, lambda h, s: [VariableDeclNode(s[1], s[3], None)]
+idMultiple %= id__ + comma__ + idMultiple, lambda h, s: [VariableDeclNode(s[1], None, None)] + s[3]
+idMultiple %= id__ + type_asignator__ + id__ + comma__ + idMultiple, lambda h, s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
-typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[4], None, [], [])
-typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[7], None, s[4], [])
-typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[6], s[4], [], [])
-typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[4], [], s[6])
-typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[9], s[7], s[4], [])
-typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h,s: TypeDeclNode(s[2], s[12], s[7], s[4], s[9])
+typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[4], None, [], [])
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[7], None, s[4], [])
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[6], s[4], [], [])
+typeDefinition %= type__ + id__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[9], s[4], [], s[6])
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[9], s[7], s[4], [])
+typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + inherits__ + id__ + open_parenthesis__ + argumentList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__, lambda h, s: TypeDeclNode(s[2], s[12], s[7], s[4], s[9])
 # typeDefinition %= type__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 # typeDefinition %= type__ + id__ + open_parenthesis__ + idList + closed_parenthesis__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
 # typeDefinition %= type__ + id__ + inherits__ + id__ + open_curly_bracket__ + attributeList + closed_curly_bracket__ + semicolon__
@@ -170,7 +170,7 @@ parameterTypeList %= id__ + type_asignator__ + id__, lambda h, s: [VariableDeclN
 parameterTypeList %= id__ + type_asignator__ + id__ + comma__ + parameterTypeList, lambda h, s: [VariableDeclNode(s[1], s[3], None)] + s[5]
 
 globalExpression %= G.Epsilon, lambda h, s: []
-globalExpression %= expression + semicolon__ , lambda h, s: s[1]
+globalExpression %= expression + semicolon__, lambda h, s: s[1]
 globalExpression %= expressionBlock, lambda h, s: s[1]
 
 expressionBlock %= open_curly_bracket__ + expressionLineList + closed_curly_bracket__, lambda h, s: ExpBlockNode(s[2])

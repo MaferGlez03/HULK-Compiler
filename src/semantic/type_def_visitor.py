@@ -1,26 +1,27 @@
-import cmp.visitor as visitor 
-from cmp.semantic import Context,SemanticError, VectorType
+import cmp.visitor as visitor
+from cmp.semantic import Context, SemanticError, VectorType
 from grammar.H_ast import *
 from Tools.Errors import *
 
+
 class typeDef:
     def __init__(self, Errors=[]):
-        self.context= None
+        self.context = None
         self.errors = Errors
         pass
-    
+
     @visitor.on('node')
     def visit(self, node, scope):
         pass
-    
+
     @visitor.when(ProgramNode)
-    def visit(self,node:ProgramNode):
-        self.context= Context()
-        #region Types
+    def visit(self, node: ProgramNode):
+        self.context = Context()
+        # region Types
         self.context.create_type('<void>')
         self.context.create_type('None')
         # self.context.create_type(AutoType().name)
-        
+
         object = self.context.create_type('Object')
         number = self.context.create_type('Number')
         number.set_parent(object)
@@ -30,26 +31,26 @@ class typeDef:
 
         string_ = self.context.create_type('String')
         string_.set_parent(object)
-        
+
         function_ = self.context.create_type('Function')
         function_.set_parent(object)
-        
+
         iterable_protocol = self.context.create_type('Iterable')
         iterable_protocol.set_parent(object)
         iterable_protocol.define_attribute('element_type', object)
-        
+
         range_ = self.context.create_type('Range')
         range_.set_parent(iterable_protocol)
         range_.params_names, range_.params_types = ['min', 'max'], [number, number]
         range_.define_attribute('min', number)
         range_.define_attribute('max', number)
         range_.define_attribute('current', number)
-        
-        #region Methods
+
+        # region Methods
         string_.define_method('size', [], [], number)
         string_.define_method('next', [], [], boolean)
         string_.define_method('current', [], [], string_)
-        
+
         object.define_method('equals', ['other'], [object], boolean)
         object.define_method('toString', [], [], string_)
 
@@ -74,7 +75,7 @@ class typeDef:
         self.context.create_function('base', [], [], object)
         self.context.create_function('parse', ['value'], [string_], number)
         self.context.create_function('range', ['min', 'max'], [number, number], range_)
-        
+
         iterable_protocol.define_method('next', [], [], boolean)
         iterable_protocol.define_method('current', [], [], object)
 
@@ -85,14 +86,14 @@ class typeDef:
             self.visit(item)
         self.visit(node.globalExpression)
         return self.context, self.errors
-    
+
     @visitor.when(TypeDeclNode)
     def visit(self, node: TypeDeclNode):
         try:
             type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
-            
+            self.errors.append(Errors(node.line, 0, str(e), 'Semantic Error'))
+
         # if node.parents is None:
         #     try:
         #         type.set_parent(node.parents)
@@ -104,8 +105,8 @@ class typeDef:
         try:
             type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(node.line,0,str(e),'Semantic Error'))
-        
+            self.errors.append(Errors(node.line, 0, str(e), 'Semantic Error'))
+
         # if node.parents is None:
         #     try:
         #         type.set_parent(node.parents)
