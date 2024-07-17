@@ -230,7 +230,12 @@ class Context:
                                                     current_node=current_node, body=body)
         return function
     
-    def get_function(self, name:str,n):
+    def get_function(self, name:str):
+        try:
+            return self.functions[name]
+        except KeyError:
+            raise SemanticError(f'Function "{name}" is not defined.')
+    def get_function1(self, name:str,n):
         for func in self.functions:
             if self.functions[name].name== name and len(self.functions[name].param_names) == n:
                 return self.functions[name]
