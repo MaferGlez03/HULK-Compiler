@@ -19,7 +19,7 @@ try:
         code = code.replace('\r\n', '\n').replace('\r', '\n')
 except FileNotFoundError:
     Errors(0, 0, f"File '{file_path}' not found", "FILE NOT FOUND")
-
+    
 # end region
 
 # region Lexer
@@ -42,19 +42,19 @@ if os.path.getsize("./action.pkl") != 0:
     productions = G.Productions
 
     for key, value in action.items():
-        state, symbol = key
-        action, tag = value
+            state, symbol = key
+            action, tag = value
 
-        if action == ShiftReduceParser.REDUCE:
-            tag = list(filter(lambda x: str(x) == str(tag), productions))[0]
+            if action == ShiftReduceParser.REDUCE:
+                tag = list(filter(lambda x: str(x) == str(tag), productions))[0]
 
-        action_table[state, G[str(symbol)]] = action, tag
+            action_table[state, G[str(symbol)]] = action, tag
 
     stored_goto = PKL_Files.load_object("goto")
 
     for key, value in stored_goto.items():
-        state, symbol = key
-        goto_table[state, G[str(symbol)]] = value
+            state, symbol = key
+            goto_table[state, G[str(symbol)]] = value
     print("===========================PARSER LOADED===========================")
     parser = LR1Parser(G, action_table, goto_table)
 else:
@@ -63,8 +63,8 @@ else:
     PKL_Files.save_object(parser.action, "action")
     PKL_Files.save_object(parser.goto, "goto")
 
-derivation, operations = parser(tokens, get_shift_reduce=True)
-try:
+derivation, operations = parser(tokens, get_shift_reduce=True) 
+try: 
     derivation.printError()
     sys.exit()
 except Exception:
@@ -79,16 +79,21 @@ ast = evaluate_reverse_parse(derivation, operations, tokens)
 formatter = FormatVisitor()
 print(formatter.visit(ast))
 
-if not semantic_check(ast):
-    sys.exit()
+isError, context = semantic_check(ast)
 
+if not isError:
+    sys.exit()
+    
 # end region
 
 # region Interpreter
 try:
-    interpreter = Interpreter(ast)
+    interpreter = Interpreter(ast, context)
     result = interpreter.visit(ast)
 except Exception as e:
     Errors(-1, -1, "Error on interpreter", "INTERPRETER ERROR").printError()
+
+# interpreter = Interpreter(ast, context)
+# result = interpreter.visit(ast)
 
 # end region

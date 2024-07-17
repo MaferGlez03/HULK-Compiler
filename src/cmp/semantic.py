@@ -235,8 +235,7 @@ class Context:
                         current_node=None, body: list = []):
         if name in self.types:
             raise SemanticError(f'Function with the same name ({name}) already in context.')
-        function = self.functions[name] = Function(name, param_names, param_types=param_types, return_type=return_type,
-                                                   current_node=current_node, body=body)
+        function = self.functions[name] = Function(name, param_names, param_types=param_types, return_type=return_type, current_node=current_node, body=body)
         return function
 
     def get_function(self, name: str, n):

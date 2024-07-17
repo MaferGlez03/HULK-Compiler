@@ -34,5 +34,5 @@ def semantic_check(ast):
     if errs:
         for error in errs:
             Errors.printError(error)
-        return False
-    return True
+        return False, context
+    return True, context

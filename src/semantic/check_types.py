@@ -13,6 +13,7 @@ class type_inference:
         self.current_function: Function = None
         self.object_type = self.context.get_type("Object")
         self.errors: List[Errors] = errors
+        self.isProtocol = False
 
     @visitor.on('node')
     def visit(self, node):
@@ -94,9 +95,13 @@ class type_inference:
             except SemanticError as e:
                 self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
                 var_type = ErrorType()
+            
+            self.isProtocol = True
+            expr_type = self.visit(node.expr)
+            self.isProtocol = False
         else:
             var_type = AutoType()
-        expr_type = self.visit(node.expr)
+            expr_type = self.visit(node.expr)
 
         if var_type.name == AutoType().name:
             node.scope.replace_variable(node.id, expr_type)
@@ -129,9 +134,9 @@ class type_inference:
 
         attributes = []
         if len(args_types) != len(return_type.attributes):
-            if len(args_types) == len(return_type.parent.attributes):
+            if len(args_types) == len(return_type.parent.attributes) and not return_type.parent == self.object_type:
                 attributes = return_type.parent.attributes
-            elif len(args_types) == 0:
+            elif len(args_types) == 0 and self.isProtocol:
                 return return_type
             else:
                 self.errors.append(Errors(node.line, -1, f'Expected {len(return_type.attributes)} arguments but got {len(args_types)} calling "{node.id}"', "SEMANTIC ERROR"))
