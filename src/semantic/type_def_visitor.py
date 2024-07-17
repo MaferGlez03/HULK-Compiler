@@ -92,23 +92,23 @@ class typeDef:
         try:
             type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(node.line, 0, str(e), 'Semantic Error'))
+            self.errors.append(Errors(node.line, -1, str(e), 'Semantic Error'))
 
         # if node.parents is None:
         #     try:
         #         type.set_parent(node.parents)
         #     except SemanticError as e:
-        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))
+        #         self.errors.append(Errors(node.line, -1, str(e),'Semantic Error'))
 
     @visitor.when(ProtocolDeclNode)
     def visit(self, node: ProtocolDeclNode):
         try:
             type = self.context.create_type(node.id)
         except SemanticError as e:
-            self.errors.append(Errors(node.line, 0, str(e), 'Semantic Error'))
+            self.errors.append(Errors(node.line, -1, str(e), 'Semantic Error'))
 
         # if node.parents is None:
         #     try:
         #         type.set_parent(node.parents)
         #     except SemanticError as e:
-        #         self.errors.append(Errors(node.line, 0, str(e),'Semantic Error'))
+        #         self.errors.append(Errors(node.line, -1, str(e),'Semantic Error'))

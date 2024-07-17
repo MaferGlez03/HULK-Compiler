@@ -1,13 +1,5 @@
-
 protocol Hashable {
     hash(): Number;
 }
-type Person {
-    hash() : Number {
-        5;
-    }
-}
-
-{
-    let x : Hashable = new Person() in print(x.hash());
-}
+type Point() {}
+let x : Hashable = new Point() in print(x.hash());

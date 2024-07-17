@@ -181,7 +181,7 @@ class type_inference:
         try:
             var = node.scope.find_variable(node.id)
         except Exception as e:
-            self.errors.append(Errors(node.line, 0, str(e), "SEMANTIC ERROR"))
+            self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
             return ErrorType()
         try:
             iterable_type = self.context.get_type(str(var.type))
@@ -550,19 +550,11 @@ class type_inference:
 
     @visitor.when(FunctCallNode)
     def visit(self, node: FunctCallNode):
-        # function_name = node.lex
-        # curr = 'Function'
-        # if node.lex == "base":
-        #     curr = self.current_type.parent.name
-        #     function_name = self.current_function
-
-        # try:
-        #     function = self.context.get_type(curr).get_method(function_name)
         if node.lex == "base":
             function = self.current_type.parent.get_method(self.current_function)
         else:
             try:
-                function = self.context.get_function(node.lex)
+                function = self.context.get_function(node.lex, len(node.args))
             except SemanticError as e:
                 self.errors.append(Errors(node.line, -1, str(e), "SEMANTIC ERROR"))
                 for arg in node.args:
